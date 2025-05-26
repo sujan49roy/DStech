@@ -63,12 +63,12 @@ export function Sidebar() {
       {/* Toggle button for mobile */}
       <Button
         variant="outline"
-        size="icon"
-        className="fixed top-20 left-4 z-50 md:hidden"
-        onClick={toggleSidebar}
+        size="lg" // Make button bigger
+        className="fixed top-20 left-4 z-50 md:hidden !w-16 !h-16 flex items-center justify-center text-2xl" // Larger size
+        onClick={() => setIsOpen((prev) => !prev)} // Ensure immediate close/open
         aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
       >
-        {isOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        {isOpen ? <ChevronLeft className="h-8 w-8" /> : <ChevronRight className="h-8 w-8" />}
       </Button>
 
       {/* Sidebar */}

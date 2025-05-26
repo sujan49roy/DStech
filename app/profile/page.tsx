@@ -122,7 +122,7 @@ export default function ProfilePage() {
         </TabsList>
 
         <TabsContent value="overview">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> {/* Changed to 2 columns */}
             <Card>
               <CardHeader>
                 <CardTitle>User Information</CardTitle>
@@ -172,28 +172,6 @@ export default function ProfilePage() {
                     })}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-                <CardDescription>Common tasks</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Link href="/create">
-                  <Button className="w-full">Create New Content</Button>
-                </Link>
-                <Link href="/profile?tab=contents">
-                  <Button variant="outline" className="w-full">
-                    Manage Contents
-                  </Button>
-                </Link>
-                <Link href="/profile?tab=settings">
-                  <Button variant="outline" className="w-full">
-                    Edit Profile
-                  </Button>
-                </Link>
               </CardContent>
             </Card>
           </div>
