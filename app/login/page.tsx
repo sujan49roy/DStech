@@ -46,11 +46,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="flex items-center justify-center min-h-screen ">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl">Login to DStech</CardTitle>
-          <CardDescription>Enter your credentials to access your knowledge base</CardDescription>
+          <CardTitle className="text-3xl">Login to DStech</CardTitle>
+          <CardDescription>Enter to your knowledge base</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -63,7 +63,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="your@email.com"
+                placeholder="sujanmishra@email.com"
               />
             </div>
             <div className="space-y-2">
@@ -85,7 +85,7 @@ export default function LoginPage() {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-500">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-blue-500 hover:underline">
+            <Link href="/register" className="text-blue-600  text-lg hover:underline">
               Register
             </Link>
           </p>

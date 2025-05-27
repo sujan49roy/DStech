@@ -6,8 +6,6 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ContentTypes } from "@/lib/models"
 import {
-  ChevronLeft,
-  ChevronRight,
   FileText,
   Code,
   Database,
@@ -31,37 +29,44 @@ const contentTypeIcons = {
   File: File,
 }
 
-export function Sidebar() {
-  const [isOpen, setIsOpen] = useState(true)
+export function Sidebar({ isOpen: initialIsOpen = false, onToggle }: { isOpen?: boolean; onToggle?: () => void }) {
+  const [isOpen, setIsOpen] = useState(initialIsOpen)
   const [isMobile, setIsMobile] = useState(false)
   const pathname = usePathname()
 
-  useEffect(() => {
-    const checkMobile = () => {
-      const mobile = window.innerWidth < 768
-      setIsMobile(mobile)
-      if (mobile) setIsOpen(false)
-    }
+ useEffect(() => {
+  const checkMobile = () => {
+    const mobile = window.innerWidth < 768
+    setIsMobile(mobile)
+    if (mobile) setIsOpen(false)
+  }
+  checkMobile()
+  window.addEventListener("resize", checkMobile)
+  return () => window.removeEventListener("resize", checkMobile)
+}, [])
 
-    checkMobile()
-    window.addEventListener("resize", checkMobile)
-    return () => window.removeEventListener("resize", checkMobile)
-  }, [])
+useEffect(() => {
+  setIsOpen(initialIsOpen)
+}, [initialIsOpen])
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen)
+    if (onToggle) onToggle()
   }
 
   const handleNavClick = () => {
-    if (isMobile) setIsOpen(false)
+    if (isMobile) {
+      setIsOpen(false)
+      if (onToggle) onToggle()
+    }
   }
 
   return (
-    <div className="relative">
+    <div className="fixed top-2">
       {/* Overlay for mobile when sidebar is open */}
       {isOpen && isMobile && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 bg-black bg-opacity-50  z-40"
           onClick={toggleSidebar}
           aria-hidden="true"
         />
@@ -69,60 +74,45 @@ export function Sidebar() {
 
       <div
         className={cn(
-          "fixed top-16 bottom-0 left-0 z-50 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out overflow-y-auto",
-          isOpen ? "w-64 translate-x-0" : "-translate-x-full md:translate-x-0 md:w-20"
+          "fixed top-28 md:top-16 bottom-0 left-0 z-50 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out overflow-y-auto",
+          isOpen || !isMobile ? "w-64 translate-x-0" : "-translate-x-full "
         )}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Mobile header with close button */}
+        {/* Sidebar header with close button for mobile */}
         {isMobile && isOpen && (
           <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold">Navigation</h2>
-            <Button variant="ghost" size="icon" onClick={toggleSidebar} aria-label="Close sidebar">
+            <h2 className="text-lg font-semibold">Menu</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              aria-label="Close sidebar"
+            >
               <X className="h-6 w-6" />
             </Button>
           </div>
         )}
 
-        {/* Desktop toggle button */}
-        <div className="hidden md:block">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              "absolute right-0 top-4 bg-gray-200 rounded-lg shadow-md hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 z-50",
-              isOpen ? "-right-4" : "right-0"
-            )}
-            onClick={toggleSidebar}
-            aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
-          >
-            {isOpen ? <ChevronLeft className="h-6 w-6" /> : <ChevronRight className="h-6 w-6" />}
-          </Button>
-        </div>
-
-        <div className="py-6 h-full">
+        <div className="py-2 h-full">
           <nav className="space-y-1 px-3">
             <Link
               href="/dashboard"
               onClick={handleNavClick}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium mt-4",
                 pathname === "/dashboard"
                   ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
                   : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
               )}
             >
               <Home className="h-5 w-5" />
-              <span className={cn("transition-opacity duration-200", !isOpen && "md:hidden")}>Dashboard</span>
+              <span>Dashboard</span>
             </Link>
 
             <div className="pt-4 pb-2">
-              <div
-                className={cn(
-                  "px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider",
-                  !isOpen && "md:text-center md:px-0"
-                )}
-              >
-                {isOpen || !isMobile ? "Content Types" : ""}
+              <div className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Content Types
               </div>
             </div>
 
@@ -142,19 +132,14 @@ export function Sidebar() {
                   )}
                 >
                   <Icon className="h-5 w-5" />
-                  <span className={cn("transition-opacity duration-200", !isOpen && "md:hidden")}>{type}s</span>
+                  <span>{type}s</span>
                 </Link>
               )
             })}
 
             <div className="pt-4 pb-2">
-              <div
-                className={cn(
-                  "px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider",
-                  !isOpen && "md:text-center md:px-0"
-                )}
-              >
-                {isOpen || !isMobile ? "External" : ""}
+              <div className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                External
               </div>
             </div>
 
@@ -169,17 +154,12 @@ export function Sidebar() {
               )}
             >
               <Github className="h-5 w-5" />
-              <span className={cn("transition-opacity duration-200", !isOpen && "md:hidden")}>GitHub Projects</span>
+              <span>GitHub Projects</span>
             </Link>
 
             <div className="pt-4 pb-2">
-              <div
-                className={cn(
-                  "px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider",
-                  !isOpen && "md:text-center md:px-0"
-                )}
-              >
-                {isOpen || !isMobile ? "Account" : ""}
+              <div className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Account
               </div>
             </div>
 
@@ -194,7 +174,7 @@ export function Sidebar() {
               )}
             >
               <User className="h-5 w-5" />
-              <span className={cn("transition-opacity duration-200", !isOpen && "md:hidden")}>Profile</span>
+              <span>Profile</span>
             </Link>
 
             <Link
@@ -208,7 +188,7 @@ export function Sidebar() {
               )}
             >
               <Plus className="h-5 w-5" />
-              <span className={cn("transition-opacity duration-200", !isOpen && "md:hidden")}>Upload Content</span>
+              <span>Upload Content</span>
             </Link>
           </nav>
         </div>

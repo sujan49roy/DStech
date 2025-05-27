@@ -11,10 +11,12 @@ export function hashPassword(password: string): string {
 }
 
 // Create a new user
+// 导出一个异步函数，用于创建用户
 export async function createUser(userData: Omit<User, "_id" | "createdAt">): Promise<User> {
+  // 连接到数据库
   const { db } = await connectToDatabase()
 
-  // Check if user already exists
+  // Check ifuser already exists
   const existingUser = await db.collection("users").findOne({ email: userData.email })
   if (existingUser) {
     throw new Error("User with this email already exists")
@@ -60,7 +62,7 @@ export async function loginUser(email: string, password: string): Promise<User> 
 // Get the current user from the session
 export async function getCurrentUser(): Promise<User | null> {
   const cookieStore = cookies()
-  const userId = cookieStore.get("userId")?.value
+  const userId = (await cookieStore).get("userId")?.value
 
   if (!userId) {
     return null
@@ -87,5 +89,45 @@ export async function requireAuth() {
 // Logout the user
 export async function logoutUser() {
   const cookieStore = cookies()
-  cookieStore.delete("userId")
+  ;(await cookieStore).delete("userId")
+}
+ 
+
+// Update user name and email
+export async function updateUser(userId: string, userData: Omit<User, "_id" | "createdAt" | "password">): Promise<User> {
+  const { db } = await connectToDatabase()
+
+  // Check if user already exists
+  const existingUser = await db.collection("users").findOne({ email: userData.email })
+  if (existingUser && existingUser._id.toString() !== userId) {
+    throw new Error("User with this email already exists")              
+
+  }
+  // Update the user
+
+  const updatedUser = {
+    ...userData,
+    updatedAt: new Date(),
+  }
+
+  const result = await db.collection("users").updateOne(
+    { _id: new ObjectId(userId) },
+    { $set: updatedUser }
+  )
+
+  if (result.modifiedCount === 0) {
+    throw new Error("Failed to update user")
+  }
+
+
+  // Return the updated user
+
+
+  const user = await db.collection("users").findOne({ _id: new ObjectId(userId) })
+
+
+  return user
+
+
+
 }

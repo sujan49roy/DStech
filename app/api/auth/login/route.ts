@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     // Set the user ID in a cookie
     const cookieStore = cookies()
-    cookieStore.set("userId", user._id!.toString(), {
+    ;(await cookieStore).set("userId", user._id!.toString(), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7, // 1 week

@@ -13,12 +13,10 @@ const options = {
 
 // Global is used here to maintain a cached connection across hot reloads
 // in development and to prevent connections growing exponentially in production
-let cached = global.mongo
-
+let cached: { conn: any; promise: any } = (global as any).mongo
 if (!cached) {
-  cached = global.mongo = { conn: null, promise: null }
+  cached = (global as any).mongo = { conn: null, promise: null }
 }
-
 export async function connectToDatabase() {
   if (cached.conn) {
     return cached.conn

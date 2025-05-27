@@ -8,13 +8,17 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { User, LogOut, Menu, Search, X } from "lucide-react"
+import { User, LogOut, Search, AlignLeft, Settings } from "lucide-react"
+
+
+
 
 interface NavBarProps {
   initialUser?: { name: string; email: string } | null
+  onContentClick?: () => void
 }
 
-export function NavBar({ initialUser }: NavBarProps) {
+export function NavBar({ initialUser, onContentClick }: NavBarProps) {
   const router = useRouter()
   const [user, setUser] = useState(initialUser)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -59,8 +63,8 @@ export function NavBar({ initialUser }: NavBarProps) {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg z-50">
-      <div className="max-w-7xl mx-auto px-4">
+    <nav className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg z-50 w-full max-w-none ">
+      <div className="mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
@@ -84,40 +88,34 @@ export function NavBar({ initialUser }: NavBarProps) {
             </form>
           </div>
 
-          {/* Mobile menu button */}
-          <div className="flex items-center md:hidden">
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
-              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-            >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-
-          {/* User Menu - Desktop */}
+          {/* User Menu and Settings - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <User className="h-4 w-4" />
-                    {user.name}
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <User className="h-4 w-4" />
+                      {user.name}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile">Profile</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout} className="text-red-500 cursor-pointer">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Link href="/settings">
+                  <Button variant="ghost" size="sm" aria-label="Settings">
+                    <Settings className="h-4 w-4" />
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile">Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings">Settings</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-500 cursor-pointer">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </Link>
+              
+              </>
             ) : (
               <>
                 <Link href="/login">
@@ -129,20 +127,45 @@ export function NavBar({ initialUser }: NavBarProps) {
               </>
             )}
           </div>
+
+          {/* Mobile menu button */}
+          <div className="flex items-center md:hidden">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            >
+              <User size={24} />
+            </Button>
+          </div>
         </div>
 
-        {/* Mobile search bar */}
+        {/* Mobile search bar and Content button */}
         <div className="md:hidden py-2">
-          <form onSubmit={handleSearch} className="relative">
-            <Input
-              type="search"
-              placeholder="Search knowledge base..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          </form>
+          <div className="flex items-center space-x-3">
+            <form onSubmit={handleSearch} className="flex-1 relative">
+              <Input
+                type="search"
+                placeholder="Search knowledge base..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            </form>
+           <Button
+  variant="ghost"
+  size="icon"
+  onClick={() => {
+    console.log("Content button clicked");
+    onContentClick?.();
+  }}
+  aria-label="Open sidebar"
+>
+  <AlignLeft size={24} />
+</Button>
+          </div>
         </div>
 
         {/* Mobile menu */}

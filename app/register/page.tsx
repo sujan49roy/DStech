@@ -58,18 +58,18 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="flex items-center justify-center min-h-screen ">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl">Create an Account</CardTitle>
-          <CardDescription>Sign up to start using DStech knowledge base</CardDescription>
+          <CardTitle className="text-3xl">Create an Account</CardTitle>
+          <CardDescription>Register in DStech | Organize all your data</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <ErrorMessage message={error} />
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required placeholder="John Doe" />
+              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required placeholder="Sujan Mishra" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -79,7 +79,7 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="your@email.com"
+                placeholder="sujanmishra@email.com"
               />
             </div>
             <div className="space-y-2">
@@ -113,7 +113,7 @@ export default function RegisterPage() {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-500">
             Already have an account?{" "}
-            <Link href="/login" className="text-blue-500 hover:underline">
+            <Link href="/login" className="text-blue-500 text-lg hover:underline">
               Login
             </Link>
           </p>
