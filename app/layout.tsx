@@ -20,15 +20,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   // Remove password from user object
   const safeUser = user ? { name: user.name, email: user.email } : null
-
+  
   return (
     <html lang="en">
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <NavBar initialUser={safeUser} />
-          <div className="flex min-h-screen pt-16">
+          <NavBar  initialUser={safeUser}   />
+          <div className="flex min-h-screen pt-16 mt-20 ">
             {user && <Sidebar />}
-            <main className={`flex-1 ${user ? "md:ml-16" : ""} p-4`}>{children}</main>
+            <main className={`flex-1 ${user ? "md:ml-16" : ""} p-6`}>{children}</main>
           </div>
         </ThemeProvider>
       </body>

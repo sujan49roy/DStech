@@ -16,9 +16,9 @@ import {
   File,
   User,
   Home,
-  ExternalLink,
   Github,
   Plus,
+  X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -38,10 +38,9 @@ export function Sidebar() {
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-      if (window.innerWidth < 768) {
-        setIsOpen(false)
-      }
+      const mobile = window.innerWidth < 768
+      setIsMobile(mobile)
+      if (mobile) setIsOpen(false)
     }
 
     checkMobile()
@@ -53,47 +52,63 @@ export function Sidebar() {
     setIsOpen(!isOpen)
   }
 
+  const handleNavClick = () => {
+    if (isMobile) setIsOpen(false)
+  }
+
   return (
-    <>
-      {/* Mobile overlay */}
+    <div className="relative">
+      {/* Overlay for mobile when sidebar is open */}
       {isOpen && isMobile && (
-        <div className="fixed inset-0 bg-black/50 z-40" onClick={toggleSidebar} aria-hidden="true" />
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={toggleSidebar}
+          aria-hidden="true"
+        />
       )}
 
-      {/* Toggle button for mobile */}
-      <Button
-        variant="outline"
-        size="lg" // Make button bigger
-        className="fixed top-20 left-4 z-50 md:hidden !w-16 !h-16 flex items-center justify-center text-2xl" // Larger size
-        onClick={() => setIsOpen((prev) => !prev)} // Ensure immediate close/open
-        aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
-      >
-        {isOpen ? <ChevronLeft className="h-8 w-8" /> : <ChevronRight className="h-8 w-8" />}
-      </Button>
-
-      {/* Sidebar */}
       <div
         className={cn(
-          "fixed top-16 bottom-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-transform duration-300 ease-in-out",
-          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:w-16",
+          "fixed top-16 bottom-0 left-0 z-50 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out overflow-y-auto",
+          isOpen ? "w-64 translate-x-0" : "-translate-x-full md:translate-x-0 md:w-20"
         )}
       >
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 md:hidden">
-          <h2 className="text-lg font-semibold">Navigation</h2>
-          <Button variant="ghost" size="icon" onClick={toggleSidebar}>
-            <ChevronLeft className="h-4 w-4" />
+        {/* Mobile header with close button */}
+        {isMobile && isOpen && (
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold">Navigation</h2>
+            <Button variant="ghost" size="icon" onClick={toggleSidebar} aria-label="Close sidebar">
+              <X className="h-6 w-6" />
+            </Button>
+          </div>
+        )}
+
+        {/* Desktop toggle button */}
+        <div className="hidden md:block">
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "absolute right-0 top-4 bg-gray-200 rounded-lg shadow-md hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 z-50",
+              isOpen ? "-right-4" : "right-0"
+            )}
+            onClick={toggleSidebar}
+            aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+          >
+            {isOpen ? <ChevronLeft className="h-6 w-6" /> : <ChevronRight className="h-6 w-6" />}
           </Button>
         </div>
 
-        <div className="py-4 h-full overflow-y-auto">
-          <nav className="space-y-1 px-2">
+        <div className="py-6 h-full">
+          <nav className="space-y-1 px-3">
             <Link
               href="/dashboard"
+              onClick={handleNavClick}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
                 pathname === "/dashboard"
                   ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
-                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700",
+                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
               )}
             >
               <Home className="h-5 w-5" />
@@ -104,7 +119,7 @@ export function Sidebar() {
               <div
                 className={cn(
                   "px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider",
-                  !isOpen && "md:text-center md:px-0",
+                  !isOpen && "md:text-center md:px-0"
                 )}
               >
                 {isOpen || !isMobile ? "Content Types" : ""}
@@ -118,11 +133,12 @@ export function Sidebar() {
                 <Link
                   key={type}
                   href={path}
+                  onClick={handleNavClick}
                   className={cn(
                     "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
                     pathname === path
                       ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
-                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700",
+                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                   )}
                 >
                   <Icon className="h-5 w-5" />
@@ -135,7 +151,7 @@ export function Sidebar() {
               <div
                 className={cn(
                   "px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider",
-                  !isOpen && "md:text-center md:px-0",
+                  !isOpen && "md:text-center md:px-0"
                 )}
               >
                 {isOpen || !isMobile ? "External" : ""}
@@ -143,25 +159,13 @@ export function Sidebar() {
             </div>
 
             <Link
-              href="/external"
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
-                pathname === "/external"
-                  ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
-                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700",
-              )}
-            >
-              <ExternalLink className="h-5 w-5" />
-              <span className={cn("transition-opacity duration-200", !isOpen && "md:hidden")}>External</span>
-            </Link>
-
-            <Link
-              href="/github-projects"
+              href="https://github.com/search?q=data+science+projects&type=repositories"
+              onClick={handleNavClick}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
                 pathname === "/github-projects"
                   ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
-                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700",
+                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
               )}
             >
               <Github className="h-5 w-5" />
@@ -172,7 +176,7 @@ export function Sidebar() {
               <div
                 className={cn(
                   "px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider",
-                  !isOpen && "md:text-center md:px-0",
+                  !isOpen && "md:text-center md:px-0"
                 )}
               >
                 {isOpen || !isMobile ? "Account" : ""}
@@ -181,11 +185,12 @@ export function Sidebar() {
 
             <Link
               href="/profile"
+              onClick={handleNavClick}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
                 pathname === "/profile"
                   ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
-                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700",
+                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
               )}
             >
               <User className="h-5 w-5" />
@@ -194,11 +199,12 @@ export function Sidebar() {
 
             <Link
               href="/upload"
+              onClick={handleNavClick}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium mt-4",
                 pathname === "/upload"
                   ? "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100"
-                  : "text-blue-700 bg-blue-50 hover:bg-blue-100 dark:text-blue-300 dark:bg-blue-900/20 dark:hover:bg-blue-900/30",
+                  : "text-blue-700 bg-blue-50 hover:bg-blue-100 dark:text-blue-300 dark:bg-blue-900/20 dark:hover:bg-blue-900/30"
               )}
             >
               <Plus className="h-5 w-5" />
@@ -206,18 +212,9 @@ export function Sidebar() {
             </Link>
           </nav>
         </div>
-
-        {/* Toggle button for desktop */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute right-0 bottom-4 hidden md:flex"
-          onClick={toggleSidebar}
-          aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
-        >
-          {isOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-        </Button>
       </div>
-    </>
+    </div>
   )
 }
+
+export default Sidebar
