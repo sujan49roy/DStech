@@ -59,7 +59,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 px-4 py-8">
+    <div className="flex items-center justify-center min-h-screen dark:bg-gray-900 px-4 py-8">
       <Card className="w-full max-w-md md:max-w-lg bg-white dark:bg-gray-800 shadow-2xl rounded-lg">
         <CardHeader className="text-center pt-8 pb-6"> {/* Added padding and centered */}
           <div className="flex justify-center mb-4">
