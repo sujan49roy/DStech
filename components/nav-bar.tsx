@@ -4,10 +4,11 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation" // Import usePathname
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"; // Import cn
 import { User, LogOut, Search, AlignLeft, Settings } from "lucide-react"
 
 
@@ -20,6 +21,7 @@ interface NavBarProps {
 
 export function NavBar({ initialUser, onContentClick }: NavBarProps) {
   const router = useRouter()
+  const pathname = usePathname() // Get current pathname
   const [user, setUser] = useState(initialUser)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -32,17 +34,23 @@ export function NavBar({ initialUser, onContentClick }: NavBarProps) {
           const userData = await response.json()
           setUser(userData)
         } else {
-          setUser(null)
+          // If initialUser was provided, don't immediately nullify it
+          // if the fetch fails, to prevent flicker on initial load.
+          // Only set to null if there was no initialUser or if it's a subsequent fetch.
+          if (!initialUser || user) { // user check means it's not the very first fetch
+            setUser(null)
+          }
         }
       } catch (error) {
-        setUser(null)
+        if (!initialUser || user) {
+           setUser(null)
+        }
       }
     }
 
-    if (!initialUser) {
-      fetchUser()
-    }
-  }, [initialUser])
+    fetchUser()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Run once on mount; rely on router.refresh() and initialUser prop for updates
 
   const handleLogout = async () => {
     try {
@@ -63,30 +71,38 @@ export function NavBar({ initialUser, onContentClick }: NavBarProps) {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg z-50 w-full max-w-none ">
-      <div className="mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
+    <nav className={cn(
+      "fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg z-100 w-full max-w-none",
+      user ? "h-20" : "h-24" // Conditional height
+    )}>
+      <div className="mx-auto px-4 h-full bg-white ">
+        <div className={cn("flex justify-between items-center h-full")}>
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/dashboard" className="flex items-center">
-              <Image src="/data.png" alt="DStech Logo" width={32} height={32} className="mr-2" />
-              <span className="text-xl font-bold">DStech</span>
+            <Link href={user ? "/dashboard" : "/"} className="flex items-center"> {/* Link to home if not logged in */}
+              {/* Image removed as per request */}
+              <span className={cn(
+                "font-bold font-sans",
+                user ? "text-2xl" : "text-4xl mx-6" // Updated conditional text size
+              )}>DStech</span>
             </Link>
           </div>
 
           {/* Search Bar - Desktop */}
-          <div className="hidden md:flex items-center max-w-md w-full mx-4">
-            <form onSubmit={handleSearch} className="w-full relative">
-              <Input
-                type="search"
-                placeholder="Search knowledge base..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10"
-              />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            </form>
-          </div>
+          {user && (
+            <div className="hidden md:flex items-center max-w-md w-full mx-4">
+              <form onSubmit={handleSearch} className="w-full relative">
+                <Input
+                  type="search"
+                  placeholder="Search knowledge base..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10"
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              </form>
+            </div>
+          )}
 
           {/* User Menu and Settings - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
@@ -119,10 +135,34 @@ export function NavBar({ initialUser, onContentClick }: NavBarProps) {
             ) : (
               <>
                 <Link href="/login">
-                  <Button variant="ghost" size="sm">Login</Button>
+                  <Button
+                    variant={pathname === "/login" ? "default" : "ghost"}
+                    size={user ? "sm" : "lg"}
+                    className={cn(
+                      "transition-all duration-200",
+                      pathname === "/login" 
+                        ? "bg-black text-white hover:bg-black/90 rounded-md scale-105" 
+                        : "hover:bg-black hover:text-white rounded-md",
+                      !user ? "px-6 py-3 text-base" : ""
+                    )}
+                  >
+                    Login
+                  </Button>
                 </Link>
                 <Link href="/register">
-                  <Button size="sm">Register</Button>
+                  <Button
+                    variant={pathname === "/register" ? "default" : "ghost"}
+                    size={user ? "sm" : "lg"}
+                    className={cn(
+                      "transition-all duration-200",
+                      pathname === "/register" 
+                        ? "bg-black text-white hover:bg-black/90 rounded-md scale-105" 
+                        : "hover:bg-black hover:text-white rounded-md",
+                      !user ? "px-6 py-3 text-base" : ""
+                    )}
+                  >
+                    Register
+                  </Button>
                 </Link>
               </>
             )}
@@ -142,31 +182,33 @@ export function NavBar({ initialUser, onContentClick }: NavBarProps) {
         </div>
 
         {/* Mobile search bar and Content button */}
-        <div className="md:hidden py-2">
-          <div className="flex items-center space-x-3">
-            <form onSubmit={handleSearch} className="flex-1 relative">
-              <Input
-                type="search"
-                placeholder="Search knowledge base..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10"
-              />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            </form>
-           <Button
-  variant="ghost"
-  size="icon"
-  onClick={() => {
-    console.log("Content button clicked");
-    onContentClick?.();
-  }}
-  aria-label="Open sidebar"
->
-  <AlignLeft size={24} />
-</Button>
+        {user && (
+          <div className="md:hidden py-2">
+            <div className="flex items-center space-x-3">
+              <form onSubmit={handleSearch} className="flex-1 relative">
+                <Input
+                  type="search"
+                  placeholder="Search knowledge base..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10"
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 bg-white " size={18} />
+              </form>
+             <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  console.log("Content button clicked");
+                  onContentClick?.();
+                }}
+                aria-label="Open sidebar"
+              >
+                <AlignLeft size={20} />
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Mobile menu */}
         {isMenuOpen && (

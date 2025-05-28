@@ -23,6 +23,7 @@ export interface User {
   password: string // This will be hashed
   name: string
   createdAt: Date
+  updatedAt?: Date
 }
 
 export function validateContent(content: Partial<Content>): { isValid: boolean; errors: string[] } {

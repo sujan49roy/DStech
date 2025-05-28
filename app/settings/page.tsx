@@ -47,8 +47,8 @@ export default function SettingsPage() {
     setIsLoading(true)
     setError("")
     try {
-      const response = await fetch("/api/auth/update", {
-        method: "POST",
+      const response = await fetch("/api/auth/user/update", {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email }),
       })

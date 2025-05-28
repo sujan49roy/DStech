@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ErrorMessage } from "@/components/error-message"
 import Link from "next/link"
+import { LogIn } from "lucide-react"; // Import LogIn icon
 
 export default function LoginPage() {
   const router = useRouter()
@@ -46,11 +47,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen ">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-3xl">Login to DStech</CardTitle>
-          <CardDescription>Enter to your knowledge base</CardDescription>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 px-4 py-8">
+      <Card className="w-full max-w-md md:max-w-lg bg-white dark:bg-gray-800 shadow-2xl rounded-lg">
+        <CardHeader className="text-center pt-8 pb-6"> {/* Added padding and centered */}
+          <div className="flex justify-center mb-4">
+            <LogIn className="h-12 w-12 text-primary" /> {/* Larger icon, primary color */}
+          </div>
+          <CardTitle className="text-3xl font-bold">Welcome Back!</CardTitle>
+          <CardDescription className="text-md text-gray-600 dark:text-gray-400">Sign in to access your DStech account.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

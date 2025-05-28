@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { updateUserPassword } from "@/app/api/auth/update"; // adjust import if needed
+import { updateUserPassword } from "@/lib/auth"; // adjust import if needed
 import { cookies } from "next/headers";
 
 export async function POST(request: NextRequest) {
@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
 
     // Get userId from cookie
     const cookieStore = cookies();
-    const userId = cookieStore.get("userId")?.value;
+    const userId = (await cookieStore).get("userId")?.value;
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

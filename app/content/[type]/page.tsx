@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ContentCard } from "@/components/content-card"
@@ -23,10 +23,13 @@ export default function ContentTypePage({ params }: { params: { type: string } }
   const [activeLetter, setActiveLetter] = useState<string | null>(null)
 
   // Convert URL param to proper content type
-  const contentType = params.type
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ") as ContentType
+  const typeFromParams = params.type;
+  const contentType = useMemo(() => {
+    return typeFromParams
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ") as ContentType;
+  }, [typeFromParams]);
 
   useEffect(() => {
     const fetchContents = async () => {

@@ -6,6 +6,7 @@ import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { NavBar } from "@/components/nav-bar"
 import { Sidebar } from "@/components/sidebar"
+import { Footer } from "@/components/footer" // Import Footer
 import { useState, useEffect } from "react"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -40,13 +41,19 @@ const handleContentClick = () => {
   const safeUser = user ? { name: user.name, email: user.email } : null
 
   return (
-    <html lang="en" className="light">
+    <html lang="en" suppressHydrationWarning={true}>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <NavBar initialUser={safeUser} onContentClick={handleContentClick} />
-          <div className="flex min-h-screen pt-24 md:pt-20 bg-background">
-{user && <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />}
-              <main className={`flex-1 ${user ? "md:ml-64" : ""} p-6`}>{children}</main>
+          <div className="flex flex-col min-h-screen ">
+            <NavBar initialUser={safeUser} onContentClick={handleContentClick} />
+            <div className="flex flex-1 pt-32 bg-background"> {/* pt-16 to account for NavBar height, adjust as needed */}
+             {user && <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />}
+              {/* Main content area needs to be aware of sidebar */}
+              <main className={`flex-1 ${user ? "md:ml-64" : ""} p-6 mt-0`}> {/* Ensure no top margin if pt is on parent */}
+                {children}
+              </main>
+            </div>
+            <Footer />
           </div>
         </ThemeProvider>
       </body>

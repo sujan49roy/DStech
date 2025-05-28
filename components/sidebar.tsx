@@ -62,11 +62,11 @@ useEffect(() => {
   }
 
   return (
-    <div className="fixed top-2">
+    <div className="fixed top-2 rounded-md">
       {/* Overlay for mobile when sidebar is open */}
       {isOpen && isMobile && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50  z-40"
+          className="fixed inset-0 bg-white  bg-opacity-25  z-40"
           onClick={toggleSidebar}
           aria-hidden="true"
         />
@@ -74,8 +74,8 @@ useEffect(() => {
 
       <div
         className={cn(
-          "fixed top-28 md:top-16 bottom-0 left-0 z-50 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out overflow-y-auto",
-          isOpen || !isMobile ? "w-64 translate-x-0" : "-translate-x-full "
+          "fixed top-32 md:top-20 bottom-0 left-0 z-50 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out overflow-y-auto",
+          isOpen || !isMobile ? "w-64 translate-x-0" : "-translate-x-full  mt-20"
         )}
         onClick={(e) => e.stopPropagation()}
       >
