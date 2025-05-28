@@ -40,9 +40,9 @@ export function Footer({}: FooterProps) {
   }, []);
 
   return (
-    <footer className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 py-12 mt-auto">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+    <footer className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 py-4 mt-auto">
+      <div className="container  mx-40 px-32">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-48 mb-4">
           {/* Column 1: Name and Motto */}
           <div>
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">DStech</h3>
@@ -79,11 +79,9 @@ export function Footer({}: FooterProps) {
           )}
         </div>
 
-        <div className="border-t border-gray-300 dark:border-gray-700 pt-8 text-center text-sm">
+        <div className="border-t border-gray-300 dark:border-gray-700 pt-4 text-center text-sm">
           <p>&copy; {new Date().getFullYear()} DStech. All rights reserved.</p>
-          <p className="mt-1">
-            Built with Next.js and ❤️
-          </p>
+
         </div>
       </div>
     </footer>

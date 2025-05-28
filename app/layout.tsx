@@ -52,11 +52,15 @@ const handleContentClick = () => {
               <main className={`flex-1 ${user ? "md:ml-64" : ""} p-6 mt-0`}> {/* Ensure no top margin if pt is on parent */}
                 {children}
               </main>
+
             </div>
-            <Footer />
+                  <Footer />
           </div>
+
         </ThemeProvider>
+
       </body>
+       
     </html>
   )
 }
