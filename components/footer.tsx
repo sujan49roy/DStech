@@ -40,11 +40,11 @@ export function Footer({}: FooterProps) {
   }, []);
 
   return (
-    <footer className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 py-4 mt-auto">
-      <div className="container  mx-40 px-32">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-48 mb-4">
+    <footer className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 py-6 mt-auto px-4 sm:px-8 md:px-40">
+      <div className="container lg:mx-48 md:mx-8 px-4  sm:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-48 md:gap-16 mb-6">
           {/* Column 1: Name and Motto */}
-          <div>
+          <div className="mb-6 md:mb-0 text-center md:text-left">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">DStech</h3>
             <p className="text-sm">
               Your central hub for knowledge and collaboration. Store, share, and discover information seamlessly.
@@ -52,19 +52,18 @@ export function Footer({}: FooterProps) {
           </div>
 
           {/* Column 2: Navigation */}
-          <div>
+          <div className="mb-6 md:mb-0 text-center">
             <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Quick Links</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="/about" className="hover:underline">About Us</Link></li>
               <li><Link href="/terms" className="hover:underline">Terms of Service</Link></li>
-              {/* Add more links like Contact, FAQ if they exist */}
               <li><Link href="/dashboard" className="hover:underline">Dashboard</Link></li>
             </ul>
           </div>
 
           {/* Column 3: Recent Content (Logged In) */}
           {isLoggedIn && recentContents.length > 0 && (
-            <div>
+            <div className="text-center md:text-right">
               <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Recent Posts</h4>
               <ul className="space-y-2 text-sm">
                 {recentContents.map((content) => (
@@ -79,9 +78,8 @@ export function Footer({}: FooterProps) {
           )}
         </div>
 
-        <div className="border-t border-gray-300 dark:border-gray-700 pt-4 text-center text-sm">
+        <div className="border-t border-gray-300 dark:border-gray-700 pt-4 text-center text-xs sm:text-sm">
           <p>&copy; {new Date().getFullYear()} DStech. All rights reserved.</p>
-
         </div>
       </div>
     </footer>
