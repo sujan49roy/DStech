@@ -80,8 +80,13 @@ useEffect(() => {
         />
       )}      <div
         className={cn(
+<<<<<<< HEAD
           "fixed top-14 md:top-16 bottom-0 left-0 z-40 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out overflow-y-auto",
           isOpen || !isMobile ? "w-56 translate-x-0" : "-translate-x-full"
+=======
+          "fixed top-16 md:top-20 bottom-0 left-0 z-40 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out overflow-y-auto",
+          isOpen || !isMobile ? "w-64 translate-x-0" : "-translate-x-full"
+>>>>>>> eb34c9dabf499ce07cc7bfb21a5055b96473f91f
         )}
         onClick={(e) => e.stopPropagation()}
       >
@@ -100,9 +105,17 @@ useEffect(() => {
         )}
 
         <div className="py-4 px-4">
+<<<<<<< HEAD
         
         </div>        <div className="py-1 h-full">
           <nav className="space-y-0.5 px-2">
+=======
+         
+        </div>
+
+        <div className="py-2 h-full">
+          <nav className="space-y-1 px-3">
+>>>>>>> eb34c9dabf499ce07cc7bfb21a5055b96473f91f
             <div
               onClick={() => handleNavClick("/dashboard")}
               className={cn(
