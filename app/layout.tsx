@@ -65,9 +65,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 "flex flex-col flex-1 min-h-[calc(100vh-3.5rem)]",
                 user ? "md:ml-56" : ""
               )}>
+                <div className="flex flex-1 pt-[60px] md:pt-16">
+
                 <main className="flex-1 px-3 py-4 md:px-6 md:py-6">
                   {children}
                 </main>
+                </div>
                 <Footer className="mt-auto" />
               </div>
             </div>
