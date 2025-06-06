@@ -16,11 +16,11 @@ import { generateSlug } from "@/lib/models"
 import type { Content, ContentType } from "@/lib/models"
 
 interface DynamicEditFormProps {
-  contentType: ContentType
-  initialData?: Partial<Content>
-  onSubmit: (data: any) => Promise<void>
-  isEditMode?: boolean
-  isSubmitting?: boolean
+  contentType: ContentType;
+  initialData?: Partial<Content>;
+  onSubmit: (data: Partial<Content>) => Promise<void>;
+  isEditMode?: boolean;
+  isSubmitting?: boolean;
 }
 
 export function DynamicEditForm({ 
@@ -39,13 +39,12 @@ export function DynamicEditForm({
   if (!config) {
     return <div>Content type configuration not found</div>
   }
-
   // Create dynamic schema based on field configuration
   const createSchema = () => {
-    const schemaFields: Record<string, any> = {}
+    const schemaFields: Record<string, z.ZodTypeAny> = {}
     
     config.fields.forEach(field => {
-      let fieldSchema: any
+      let fieldSchema: z.ZodTypeAny
       
       switch (field.type) {
         case 'text':
@@ -53,19 +52,20 @@ export function DynamicEditForm({
         case 'markdown':
         case 'code':
         case 'url':
-          fieldSchema = z.string()
+          let stringSchema = z.string()
           if (field.validation?.minLength) {
-            fieldSchema = fieldSchema.min(field.validation.minLength, 
+            stringSchema = stringSchema.min(field.validation.minLength, 
               `${field.label} must be at least ${field.validation.minLength} characters`)
           }
           if (field.validation?.maxLength) {
-            fieldSchema = fieldSchema.max(field.validation.maxLength,
+            stringSchema = stringSchema.max(field.validation.maxLength,
               `${field.label} must be no more than ${field.validation.maxLength} characters`)
           }
           if (field.validation?.pattern) {
-            fieldSchema = fieldSchema.regex(new RegExp(field.validation.pattern),
+            stringSchema = stringSchema.regex(new RegExp(field.validation.pattern),
               `${field.label} format is invalid`)
           }
+          fieldSchema = stringSchema
           break
           
         case 'select':
@@ -104,7 +104,7 @@ export function DynamicEditForm({
     watch, 
     formState: { errors },
     reset
-  } = useForm({
+  } = useForm<Partial<Content>>({
     resolver: zodResolver(schema),
     defaultValues: {
       type: contentType,
@@ -133,7 +133,7 @@ export function DynamicEditForm({
     }
   }, [initialData, reset, contentType])
 
-  const handleFormSubmit = async (data: any) => {
+  const handleFormSubmit = async (data: Partial<Content>) => {
     setError(null)
     try {
       await onSubmit(data)
@@ -298,15 +298,15 @@ export function DynamicEditForm({
 
 // Simplified version for quick edits
 interface QuickEditFormProps {
-  content: Content
-  onSubmit: (data: any) => Promise<void>
-  onCancel: () => void
-  isSubmitting?: boolean
+  content: Content;
+  onSubmit: (data: Partial<Content>) => Promise<void>;
+  onCancel: () => void;
+  isSubmitting?: boolean;
 }
 
 export function QuickEditForm({ content, onSubmit, onCancel, isSubmitting = false }: QuickEditFormProps) {
   const config = getContentTypeConfig(content.type)
-  const [formData, setFormData] = useState(content)
+  const [formData, setFormData] = useState<Partial<Content>>(content)
   const [error, setError] = useState<string | null>(null)
 
   if (!config) {

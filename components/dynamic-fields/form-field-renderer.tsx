@@ -14,11 +14,11 @@ import type { FieldConfig } from "@/lib/content-config"
 import { uploadFile } from "@/app/upload/upload-utils"
 
 interface FormFieldRendererProps {
-  field: FieldConfig
-  value: any
-  onChange: (value: any) => void
-  error?: string
-  disabled?: boolean
+  field: FieldConfig;
+  value: any; // This will be typed based on the field type
+  onChange: (value: any) => void;
+  error?: string;
+  disabled?: boolean;
 }
 
 export function FormFieldRenderer({ field, value, onChange, error, disabled = false }: FormFieldRendererProps) {
@@ -73,13 +73,18 @@ export function FormFieldRenderer({ field, value, onChange, error, disabled = fa
         )
       
       case 'select':
+        if (!field.options) return null
         return (
-          <Select value={value || ''} onValueChange={onChange} disabled={disabled}>
+          <Select 
+            value={value || ''}
+            onValueChange={onChange}
+            disabled={disabled}
+          >
             <SelectTrigger>
               <SelectValue placeholder={field.placeholder} />
             </SelectTrigger>
             <SelectContent>
-              {field.options?.map((option) => (
+              {field.options.map((option) => (
                 <SelectItem key={option} value={option}>
                   {option}
                 </SelectItem>
@@ -90,7 +95,7 @@ export function FormFieldRenderer({ field, value, onChange, error, disabled = fa
       
       case 'tags':
         return (
-          <TagsInput
+          <TagsInput 
             value={value || []}
             onChange={onChange}
             placeholder={field.placeholder}
@@ -138,14 +143,7 @@ export function FormFieldRenderer({ field, value, onChange, error, disabled = fa
         )
       
       default:
-        return (
-          <Input
-            value={value || ''}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={field.placeholder}
-            disabled={disabled}
-          />
-        )
+        return null
     }
   }
 

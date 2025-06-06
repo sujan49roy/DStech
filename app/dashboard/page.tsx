@@ -32,7 +32,7 @@ const contentTypeIcons = {
 }
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null)
   const [contents, setContents] = useState<Content[]>([])
   const [featuredContents, setFeaturedContents] = useState<Content[]>([])
   const [loading, setLoading] = useState(true)

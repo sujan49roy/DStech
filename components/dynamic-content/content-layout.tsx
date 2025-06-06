@@ -143,9 +143,8 @@ export function ContentLayout({ content, onDelete, onBack, showActions = true }:
                   <div>
                     <h3 className="text-lg font-medium mb-2">Content Details</h3>
                     <ul className="space-y-2 text-sm">
-                      <li><span className="font-medium">Type:</span> {content.type}</li>
-                      <li><span className="font-medium">Created:</span> {new Date(content.createdAt).toLocaleString()}</li>
-                      <li><span className="font-medium">Last Updated:</span> {new Date(content.updatedAt).toLocaleString()}</li>
+                      <li><span className="font-medium">Type:</span> {content.type}</li>                      <li><span className="font-medium">Created:</span> {content.createdAt ? new Date(content.createdAt).toLocaleString() : 'Unknown'}</li>
+                      <li><span className="font-medium">Last Updated:</span> {content.updatedAt ? new Date(content.updatedAt).toLocaleString() : 'Unknown'}</li>
                     </ul>
                   </div>
 

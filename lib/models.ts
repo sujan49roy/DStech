@@ -3,8 +3,7 @@ import type { ObjectId } from "mongodb"
 export const ContentTypes = ["Blog", "Code Snippet", "Dataset", "Project", "Book", "File"] as const
 export type ContentType = (typeof ContentTypes)[number]
 
-export interface Content {
-  _id?: ObjectId
+export interface Content {  _id?: ObjectId
   title: string
   description: string
   content?: string
@@ -14,8 +13,8 @@ export interface Content {
   fileUrl?: string
   userId: string
   slug?: string
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string | Date
+  updatedAt: string | Date
   // Book-specific fields
   author?: string
   isbn?: string
@@ -40,8 +39,8 @@ export interface User {
   password: string
   passwordSalt?: string // Added for the new password hashing
   name: string
-  createdAt: Date
-  updatedAt?: Date
+  createdAt: string | Date
+  updatedAt?: string | Date
 }
 
 // Utility function to generate a slug

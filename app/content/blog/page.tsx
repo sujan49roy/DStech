@@ -51,11 +51,11 @@ export default function BlogsPage() {
     // Apply search filter
     if (searchQuery) {
       filtered = filtered.filter(
-        (blog) =>
-          blog.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          blog.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          blog.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          blog.tags?.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase())),
+        (blog) =>          blog.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          blog.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (blog.content?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+          blog.tags?.some((tag) => tag?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          false,
       )
     }
 
@@ -163,14 +163,15 @@ export default function BlogsPage() {
                     ))}
                   </div>
                 )}
-              </CardContent>
-              <CardFooter className="bg-gray-50 dark:bg-gray-800/50 flex justify-between">
+              </CardContent>              <CardFooter className="bg-gray-50 dark:bg-gray-800/50 flex justify-between">
                 <Link href={`/view/${blog._id}`}>
                   <Button variant="outline" size="sm">
                     Read More
                   </Button>
                 </Link>
-                <div className="text-sm text-gray-500">{blog.content.length > 1000 ? "Long read" : "Quick read"}</div>
+                <div className="text-sm text-gray-500">
+                  {((blog.content?.length || 0) > 1000) ? "Long read" : "Quick read"}
+                </div>
               </CardFooter>
             </Card>
           ))}

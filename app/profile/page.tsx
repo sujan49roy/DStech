@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { User } from "@/lib/models"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -25,7 +26,7 @@ const contentTypeIcons = {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [contents, setContents] = useState<Content[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -138,9 +139,10 @@ export default function ProfilePage() {
                     <Label className="text-sm text-gray-500">Email</Label>
                     <p className="font-medium">{user.email}</p>
                   </div>
-                  <div>
-                    <Label className="text-sm text-gray-500">Member Since</Label>
-                    <p className="font-medium">{new Date(user.createdAt).toLocaleDateString()}</p>
+                  <div>                    <Label className="text-sm text-gray-500">Member Since</Label>
+                    <p className="font-medium">
+                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -254,9 +256,8 @@ export default function ProfilePage() {
                                 <Icon className="h-4 w-4 text-gray-500" />
                                 <span>{content.type}</span>
                               </div>
-                            </TableCell>
-                            <TableCell>{new Date(content.createdAt).toLocaleDateString()}</TableCell>
-                            <TableCell>{new Date(content.updatedAt).toLocaleDateString()}</TableCell>
+                            </TableCell>                            <TableCell>{content.createdAt ? new Date(content.createdAt).toLocaleDateString() : 'Unknown'}</TableCell>
+                            <TableCell>{content.updatedAt ? new Date(content.updatedAt).toLocaleDateString() : 'Unknown'}</TableCell>
                             <TableCell>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
