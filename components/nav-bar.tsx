@@ -11,9 +11,11 @@ import { User, LogOut, Search, AlignLeft, Settings } from "lucide-react"
 import { SearchDropdown } from "@/components/search-dropdown" // Import our new SearchDropdown component
 
 interface NavBarProps {
-  initialUser?: { name: string; email: string } | null
-  onContentClick?: () => void
-  onUserChange?: (user: { name: string; email: string } | null) => void
+  initialUser?: { name: string; email: string } | null;
+  onContentClick?: () => void;
+  onUserChange?: (user: { name: string; email: string } | null) => void;
+  className?: string;
+
 }
 
 export function NavBar({ initialUser, onContentClick, onUserChange }: NavBarProps) {

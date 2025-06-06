@@ -5,6 +5,8 @@ import Link from 'next/link';
 import type { Content } from '@/lib/models'; // Assuming Content model is available
 
 interface FooterProps {
+    className?: string;
+
   // Props if needed, e.g., for user state if not fetched internally
 }
 
