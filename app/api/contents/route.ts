@@ -31,6 +31,26 @@ export async function POST(request: NextRequest) {
 
     const contentData = await request.json()
 
+    // Ensure content field is present for types that require it
+    if (contentData.type === "Blog" || contentData.type === "Code Snippet" || contentData.type === "Project") {
+      if (!contentData.content || contentData.content.trim() === "") {
+        return NextResponse.json({ 
+          error: "Validation failed", 
+          details: ["Content is required for this content type"] 
+        }, { status: 400 })
+      }
+    }
+
+    // Ensure fileUrl field is present for types that require it
+    if (contentData.type === "Dataset" || contentData.type === "File" || contentData.type === "Book") {
+      if (!contentData.fileUrl || contentData.fileUrl.trim() === "") {
+        return NextResponse.json({ 
+          error: "Validation failed", 
+          details: ["File upload is required for this content type"] 
+        }, { status: 400 })
+      }
+    }
+
     // Validate content
     const validation = validateContent(contentData)
     if (!validation.isValid) {

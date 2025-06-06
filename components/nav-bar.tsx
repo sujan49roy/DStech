@@ -58,10 +58,12 @@ export function NavBar({ initialUser, onContentClick, onUserChange }: NavBarProp
       await fetch("/api/auth/logout", { method: "POST" })
       setUser(null)
       if (onUserChange) onUserChange(null) // Notify parent about user state change
-      router.push("/login")
-      router.refresh()
+      // Force a complete page reload to ensure navbar updates
+      window.location.href = "/login"
     } catch (error) {
       console.error("Error logging out:", error)
+      // Even if logout fails, redirect to login
+      window.location.href = "/login"
     }
   }
 
@@ -70,7 +72,7 @@ export function NavBar({ initialUser, onContentClick, onUserChange }: NavBarProp
       "fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg z-50 w-full max-w-none", // Change z-index from z-100 to z-50
       user ? "h-20" : "h-24" // Conditional height
     )}>
-      <div className="mx-auto px-4 h-full bg-white ">
+      <div className="mx-auto px-4 h-full bg-white dark:bg-gray-800">
         <div className={cn("flex justify-between items-center h-full")}>
           {/* Logo */}
           <div className="flex items-center">
@@ -103,7 +105,7 @@ export function NavBar({ initialUser, onContentClick, onUserChange }: NavBarProp
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <Link href="/profile">Profile</Link>
+                      <Link href="/profile" className="w-full">Profile</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleLogout} className="text-red-500 cursor-pointer">
                       <LogOut className="mr-2 h-4 w-4" />
@@ -169,10 +171,12 @@ export function NavBar({ initialUser, onContentClick, onUserChange }: NavBarProp
 
         {/* Mobile search bar and Content button */}
         {user && (
-          <div className="md:hidden py-2 relative z-10"> {/* Added relative and z-10 */}
+          <div className="md:hidden py-2 relative z-10 bg-white dark:bg-gray-800"> {/* Added background to match navbar */}
             <div className="flex items-center space-x-3">
               <div className="flex-1 relative">
-                <SearchDropdown />
+                <div className="bg-white dark:bg-gray-800"> {/* Ensure search dropdown has same background */}
+                  <SearchDropdown />
+                </div>
               </div>
              <Button
                 variant="ghost"

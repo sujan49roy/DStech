@@ -7,7 +7,7 @@ export interface Content {
   _id?: ObjectId
   title: string
   description: string
-  content: string
+  content?: string
   type: ContentType
   tags?: string[]
   coverImage?: string
@@ -16,6 +16,22 @@ export interface Content {
   slug?: string
   createdAt: Date
   updatedAt: Date
+  // Book-specific fields
+  author?: string
+  isbn?: string
+  publishYear?: string
+  genre?: string
+  // Code Snippet fields
+  language?: string
+  // Dataset fields
+  dataFormat?: string
+  size?: string
+  // Project fields
+  demoUrl?: string
+  githubUrl?: string
+  technologies?: string[]
+  // File fields
+  fileType?: string
 }
 
 export interface User {
@@ -51,8 +67,16 @@ export function validateContent(content: Partial<Content>): { isValid: boolean; 
     errors.push("Description is required")
   }
 
-  if (!content.content || content.content.trim() === "") {
-    errors.push("Content is required")
+  // Content is required for Blog and Code Snippet types
+  if ((content.type === "Blog" || content.type === "Code Snippet" || content.type === "Project") && 
+      (!content.content || content.content.trim() === "")) {
+    errors.push("Content is required for this content type")
+  }
+
+  // FileUrl is required for Dataset, File, and Book types
+  if ((content.type === "Dataset" || content.type === "File" || content.type === "Book") && 
+      (!content.fileUrl || content.fileUrl.trim() === "")) {
+    errors.push("File upload is required for this content type")
   }
 
   if (!content.type || !ContentTypes.includes(content.type as ContentType)) {
@@ -97,4 +121,3 @@ export function validateUser(user: Partial<User>): { isValid: boolean; errors: s
     errors,
   }
 }
-

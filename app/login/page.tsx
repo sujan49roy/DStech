@@ -37,11 +37,13 @@ export default function LoginPage() {
         throw new Error(data.error || "Failed to login")
       }
 
-      router.push("/")
-      router.refresh()
+      // Small delay to ensure cookie is set properly
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Force a complete page reload to ensure navbar updates
+      window.location.href = "/dashboard"
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
-    } finally {
       setIsLoading(false)
     }
   }
@@ -67,7 +69,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="sujanmishra@email.com"
+                placeholder="your_name@email.com"
               />
             </div>
             <div className="space-y-2">

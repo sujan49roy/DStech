@@ -146,17 +146,17 @@ useEffect(() => {
             </div>
 
             <Link
-              href="https://github.com/search?q=data+science+projects&type=repositories"
+              href="/github-repositories"
               onClick={handleNavClick}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
-                pathname === "/github-projects"
+                pathname === "/github-repositories"
                   ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
                   : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
               )}
             >
               <Github className="h-5 w-5" />
-              <span>GitHub Projects</span>
+              <span>GitHub Repositories</span>
             </Link>
 
             <div className="pt-4 pb-2">

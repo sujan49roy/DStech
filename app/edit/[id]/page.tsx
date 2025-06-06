@@ -3,22 +3,33 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import type { Content } from "@/lib/models"
-import { ErrorMessage } from "@/components/error-message"
-import DynamicUploadForm from "../../upload/dynamic-upload-form"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
+import { DynamicEditForm } from "@/components/dynamic-content/dynamic-edit-form"
 
-export default function EditContentPage({ params }: { params: { id: string } }) {
+export default function EditContentPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const [content, setContent] = useState<Content | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [contentId, setContentId] = useState<string | null>(null)
 
   useEffect(() => {
+    const resolveParams = async () => {
+      const { id } = await params
+      setContentId(id)
+    }
+    resolveParams()
+  }, [params])
+
+  useEffect(() => {
+    if (!contentId) return
+
     const fetchContent = async () => {
       try {
-        const response = await fetch(`/api/contents/${params.id}`)
+        const response = await fetch(`/api/contents/${contentId}`)
 
         if (!response.ok) {
           throw new Error("Failed to fetch content")
@@ -34,11 +45,14 @@ export default function EditContentPage({ params }: { params: { id: string } }) 
     }
 
     fetchContent()
-  }, [params.id])
+  }, [contentId])
 
   const handleSubmit = async (data: Partial<Content>) => {
+    if (!contentId) return
+
+    setIsSubmitting(true)
     try {
-      const response = await fetch(`/api/contents/${params.id}`, {
+      const response = await fetch(`/api/contents/${contentId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -52,10 +66,13 @@ export default function EditContentPage({ params }: { params: { id: string } }) 
       }
 
       // Redirect to the view page for this content
-      router.push(`/view/${params.id}`)
+      router.push(`/view/${contentId}`)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
+      throw err // Re-throw to let the form handle it
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -87,19 +104,12 @@ export default function EditContentPage({ params }: { params: { id: string } }) 
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold mb-2">Edit Content</h1>
-        <p className="text-muted-foreground mb-6">
-          Update your content information below.
-        </p>
-
-        <DynamicUploadForm
-          initialData={content}
-          onSubmit={handleSubmit}
-          isEditMode={true}
-        />
-      </div>
-    </div>
+    <DynamicEditForm
+      contentType={content.type}
+      initialData={content}
+      onSubmit={handleSubmit}
+      isEditMode={true}
+      isSubmitting={isSubmitting}
+    />
   )
 }

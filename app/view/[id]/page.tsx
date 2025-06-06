@@ -3,27 +3,34 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import type { Content } from "@/lib/models"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { formatDistanceToNow } from "date-fns"
-import { ArrowLeft, Edit, Trash2, Download, ExternalLink } from "lucide-react"
-import Link from "next/link"
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { ArrowLeft } from "lucide-react"
+import { ContentLayout } from "@/components/dynamic-content/content-layout"
 
-export default function ViewContentById({ params }: { params: { id: string } }) {
+export default function ViewContentById({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const [content, setContent] = useState<Content | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [contentId, setContentId] = useState<string | null>(null)
 
   useEffect(() => {
+    const resolveParams = async () => {
+      const { id } = await params
+      setContentId(id)
+    }
+    resolveParams()
+  }, [params])
+
+  useEffect(() => {
+    if (!contentId) return
+
     const fetchContent = async () => {
       try {
-        console.log("Fetching content by ID:", params.id);
-        const response = await fetch(`/api/contents/${params.id}`)
+        console.log("Fetching content by ID:", contentId);
+        const response = await fetch(`/api/contents/${contentId}`)
 
         if (!response.ok) {
           const errorData = await response.json();
@@ -43,7 +50,7 @@ export default function ViewContentById({ params }: { params: { id: string } }) 
     }
 
     fetchContent()
-  }, [params.id])
+  }, [contentId])
 
   const handleDelete = async () => {
     if (!content) return;
@@ -69,103 +76,6 @@ export default function ViewContentById({ params }: { params: { id: string } }) 
       setError(err instanceof Error ? err.message : "An error occurred")
     }
   }
-
-  const renderContentBody = () => {
-    if (!content) return null;
-    
-    switch (content.type) {
-      case "Blog":
-        return (
-          <div className="prose dark:prose-invert max-w-none">
-            {content.content}
-          </div>
-        );
-      case "Code Snippet":
-        return (
-          <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto text-sm font-mono">
-            <code>{content.content}</code>
-          </pre>
-        );
-      case "Dataset":
-        return (
-          <div>
-            {content.content && (
-              <div className="mb-4">
-                <h3 className="text-lg font-medium mb-2">Description</h3>
-                <p>{content.content}</p>
-              </div>
-            )}
-            {content.fileUrl && (
-              <div className="mt-4">
-                <Button asChild variant="outline">
-                  <a href={content.fileUrl} target="_blank" rel="noopener noreferrer">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download Dataset
-                  </a>
-                </Button>
-              </div>
-            )}
-          </div>
-        );
-      case "Project":
-        return (
-          <div>
-            <div className="prose dark:prose-invert max-w-none mb-4">
-              {content.content}
-            </div>
-            {content.fileUrl && (
-              <div className="mt-4">
-                <Button asChild variant="outline">
-                  <a href={content.fileUrl} target="_blank" rel="noopener noreferrer">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download Project Files
-                  </a>
-                </Button>
-              </div>
-            )}
-          </div>
-        );
-      case "Book":
-        return (
-          <div>
-            <div className="prose dark:prose-invert max-w-none mb-4">
-              {content.content}
-            </div>
-            {content.fileUrl && (
-              <div className="mt-4">
-                <Button asChild variant="outline">
-                  <a href={content.fileUrl} target="_blank" rel="noopener noreferrer">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download PDF
-                  </a>
-                </Button>
-              </div>
-            )}
-          </div>
-        );
-      case "File":
-        return (
-          <div>
-            <div className="mb-4">
-              <h3 className="text-lg font-medium mb-2">Description</h3>
-              <p>{content.description}</p>
-            </div>
-            {content.fileUrl && (
-              <div className="mt-4">
-                <Button asChild variant="outline">
-                  <a href={content.fileUrl} target="_blank" rel="noopener noreferrer">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download File
-                  </a>
-                </Button>
-              </div>
-            )}
-          </div>
-        );
-      default:
-        return <p>{content.content}</p>;
-    }
-  };
 
   if (loading) {
     return (
@@ -214,124 +124,12 @@ export default function ViewContentById({ params }: { params: { id: string } }) 
     );
   }
 
-  const formattedDate = content.createdAt
-    ? formatDistanceToNow(new Date(content.createdAt), { addSuffix: true })
-    : "Unknown date";
-
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <Button variant="outline" onClick={() => router.back()}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
-        <div className="flex gap-2">
-          <Link href={`/edit/${content._id}`}>
-            <Button variant="outline">
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
-          </Link>
-          <Button 
-            variant={deleteConfirm ? "destructive" : "outline"} 
-            className={!deleteConfirm ? "text-red-500" : ""}
-            onClick={handleDelete}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            {deleteConfirm ? "Confirm Delete" : "Delete"}
-          </Button>
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">{content.title}</h1>
-        <div className="flex flex-wrap items-center gap-3 text-muted-foreground">
-          <Badge variant="outline">{content.type}</Badge>
-          <span>Created {formattedDate}</span>
-          {content.slug && (
-            <Link 
-              href={`/content-view/${content.type.toLowerCase().replace(/\s+/g, "-")}/${content.slug}`}
-              className="text-blue-500 hover:underline flex items-center text-sm"
-            >
-              <ExternalLink className="h-3 w-3 mr-1" />
-              View by slug
-            </Link>
-          )}
-        </div>
-      </div>
-
-      <Card className="mb-8">
-        <CardContent className="p-0">
-          <Tabs defaultValue="content" className="w-full">
-            <TabsList className="w-full rounded-t-lg rounded-b-none border-b">
-              <TabsTrigger value="content" className="flex-1">Content</TabsTrigger>
-              <TabsTrigger value="details" className="flex-1">Details</TabsTrigger>
-              {content.fileUrl && <TabsTrigger value="file" className="flex-1">File</TabsTrigger>}
-            </TabsList>
-            
-            <TabsContent value="content" className="p-6">
-              {content.coverImage && (
-                <div className="mb-6">
-                  <img
-                    src={content.coverImage}
-                    alt={content.title}
-                    className="w-full h-64 object-cover rounded-lg"
-                  />
-                </div>
-              )}
-              {renderContentBody()}
-            </TabsContent>
-            
-            <TabsContent value="details" className="p-6 space-y-4">
-              <div>
-                <h3 className="text-lg font-medium mb-2">Description</h3>
-                <p className="text-muted-foreground">{content.description}</p>
-              </div>
-              
-              {content.tags && content.tags.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Tags</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {content.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              <div>
-                <h3 className="text-lg font-medium mb-2">Content Details</h3>
-                <ul className="space-y-2 text-sm">
-                  <li><span className="font-medium">Type:</span> {content.type}</li>
-                  <li><span className="font-medium">Created:</span> {new Date(content.createdAt).toLocaleString()}</li>
-                  <li><span className="font-medium">Last Updated:</span> {new Date(content.updatedAt).toLocaleString()}</li>
-                  {content.slug && <li><span className="font-medium">Slug:</span> {content.slug}</li>}
-                </ul>
-              </div>
-            </TabsContent>
-            
-            {content.fileUrl && (
-              <TabsContent value="file" className="p-6">
-                <div className="flex flex-col items-center justify-center py-8">
-                  <Download className="h-16 w-16 text-muted-foreground mb-4" />
-                  <h3 className="text-xl font-medium mb-2">File Available</h3>
-                  <p className="text-muted-foreground mb-4">
-                    This content has an attached file that you can download.
-                  </p>
-                  <Button asChild>
-                    <a href={content.fileUrl} target="_blank" rel="noopener noreferrer">
-                      <Download className="mr-2 h-4 w-4" />
-                      Download File
-                    </a>
-                  </Button>
-                </div>
-              </TabsContent>
-            )}
-          </Tabs>
-        </CardContent>
-      </Card>
-    </div>
+    <ContentLayout
+      content={content}
+      onDelete={handleDelete}
+      onBack={() => router.back()}
+      showActions={true}
+    />
   )
 }

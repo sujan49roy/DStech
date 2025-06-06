@@ -50,7 +50,7 @@ export default function SettingsPage() {
       const response = await fetch("/api/auth/user/update", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email }),
+        body: JSON.stringify({ name }),
       })
       if (response.ok) {
         const updatedUser = await response.json()
@@ -101,9 +101,9 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl">
-      <h1 className="text-3xl font-bold mb-6 flex items-center gap-2">
-        <Shield className="h-8 w-8" />
+    <div className="container mx-auto px-4 py-4 sm:py-8 max-w-3xl">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
+        <Shield className="h-6 w-6 sm:h-8 sm:w-8" />
         Settings
       </h1>
 
@@ -140,9 +140,9 @@ export default function SettingsPage() {
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
-                disabled={isLoading}
+                disabled={true}
+                className="bg-gray-50 dark:bg-gray-700"
               />
             </div>
             <Button type="submit" disabled={isLoading}>

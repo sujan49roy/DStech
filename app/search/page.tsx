@@ -29,8 +29,8 @@ type SearchResult = {
 export default function SearchPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const query = searchParams.get("q") || ""
-  const typeParam = searchParams.get("type")?.split(',') || []
+  const query = searchParams?.get("q") || ""
+  const typeParam = searchParams?.get("type")?.split(',') || []
   
   const [results, setResults] = useState<SearchResult[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -85,9 +85,8 @@ export default function SearchPage() {
   }
 
   const handleResultClick = (result: SearchResult) => {
-    // Convert content type to slug format
-    const typeSlug = result.type.toLowerCase().replace(/\s+/g, '-')
-    router.push(`/content-view/${typeSlug}/${result.slug}`)
+    // Navigate to content by ID instead of slug
+    router.push(`/view/${result._id}`)
   }
 
   const formatDate = (dateString: string) => {

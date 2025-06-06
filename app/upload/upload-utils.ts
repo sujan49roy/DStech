@@ -27,20 +27,35 @@ export function getFileAcceptTypes(type: ContentType): Record<string, string[]> 
 
 // Upload file to server
 export async function uploadFile(file: File): Promise<string> {
+  // Validate file size before sending to server (max 10MB)
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (file.size > maxSize) {
+    throw new Error(`File size exceeds the limit (10MB). Current size: ${(file.size / (1024 * 1024)).toFixed(2)}MB`);
+  }
+
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch("/api/upload", {
-    method: "POST",
-    body: formData,
-  });
+  try {
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
 
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || "Failed to upload file");
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || data.details || "Failed to upload file");
+    }
+
+    return data.url;
+  } catch (error) {
+    console.error("Upload error:", error);
+    if (error instanceof Error) {
+      throw error;
+    } else {
+      throw new Error("An unexpected error occurred during file upload");
+    }
   }
-
-  return data.url;
 }
 
 // Get appropriate icon for content type

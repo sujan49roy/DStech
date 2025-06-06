@@ -17,10 +17,11 @@ import { ErrorMessage } from "@/components/error-message"
 import { X, Plus, Upload, Image, FileText, Book, Code, Database, Folder } from "lucide-react"
 import { ContentTypes, generateSlug } from "@/lib/models"
 import type { ContentType } from "@/lib/models"
-import { 
-  getFileAcceptTypes, 
-  uploadFile, 
-  getContentTypeLabel, 
+import { ContentTypeNavigation } from "@/components/content-type-navigation"
+import {
+  getFileAcceptTypes,
+  uploadFile,
+  getContentTypeLabel,
   getContentTypeHelperText,
   getRequiredFields
 } from "./upload-utils"
@@ -30,7 +31,7 @@ const baseSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters" }),
   description: z.string().min(10, { message: "Description must be at least 10 characters" }),
   content: z.string().optional(),
-  type: z.enum(ContentTypes as [string, ...string[]]),
+  type: z.enum(ContentTypes as unknown as [string, ...string[]]),
   tags: z.array(z.string()).optional(),
   coverImage: z.string().optional(),
   fileUrl: z.string().optional(),
@@ -123,47 +124,73 @@ export default function DynamicUploadForm() {
   }, [title, setValue, slugGenerated]);
 
   // Setup dropzone for file uploads
-  const { getRootProps: getFileRootProps, getInputProps: getFileInputProps } = useDropzone({
+  const { getRootProps: getFileRootProps, getInputProps: getFileInputProps, fileRejections: fileRejections } = useDropzone({
     onDrop: async (acceptedFiles) => {
       if (acceptedFiles.length === 0) return;
       
       const file = acceptedFiles[0];
       // Create object URL for preview
       setFilePreview(URL.createObjectURL(file));
+      setError(null); // Clear any previous errors
       
       try {
+        // Show loading state
+        setIsSubmitting(true);
+        
         // Upload file to server
         const fileUrl = await uploadFile(file);
         setValue("fileUrl", fileUrl);
+        setIsSubmitting(false);
       } catch (err) {
+        setIsSubmitting(false);
         setError(err instanceof Error ? err.message : "Failed to upload file");
+        // Clear the preview if upload failed
+        setFilePreview(null);
       }
     },
+    onDropRejected: (rejections) => {
+      const errorMessage = rejections[0]?.errors[0]?.message || "Invalid file type";
+      setError(`File upload rejected: ${errorMessage}`);
+    },
     accept: getFileAcceptTypes(type),
-    maxFiles: 1
+    maxFiles: 1,
+    maxSize: 10 * 1024 * 1024 // 10MB
   });
 
   // Setup dropzone for cover image uploads
-  const { getRootProps: getCoverImageRootProps, getInputProps: getCoverImageInputProps } = useDropzone({
+  const { getRootProps: getCoverImageRootProps, getInputProps: getCoverImageInputProps, fileRejections: imageRejections } = useDropzone({
     onDrop: async (acceptedFiles) => {
       if (acceptedFiles.length === 0) return;
       
       const file = acceptedFiles[0];
       // Create object URL for preview
       setCoverImagePreview(URL.createObjectURL(file));
+      setError(null); // Clear any previous errors
       
       try {
+        // Show loading state
+        setIsSubmitting(true);
+        
         // Upload file to server
         const fileUrl = await uploadFile(file);
         setValue("coverImage", fileUrl);
+        setIsSubmitting(false);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to upload file");
+        setIsSubmitting(false);
+        setError(err instanceof Error ? err.message : "Failed to upload image");
+        // Clear the preview if upload failed
+        setCoverImagePreview(null);
       }
+    },
+    onDropRejected: (rejections) => {
+      const errorMessage = rejections[0]?.errors[0]?.message || "Invalid image type";
+      setError(`Image upload rejected: ${errorMessage}`);
     },
     accept: {
       'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp']
     },
-    maxFiles: 1
+    maxFiles: 1,
+    maxSize: 5 * 1024 * 1024 // 5MB for images
   });
 
   // Handle adding tags
@@ -213,35 +240,28 @@ export default function DynamicUploadForm() {
   };
 
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <ErrorMessage message={error} />
+    <div className="space-y-6">
+      {/* Content Type Navigation */}
+      <ContentTypeNavigation
+        selectedType={type}
+        onTypeSelect={(selectedType) => setValue("type", selectedType)}
+      />
 
-          {/* Content Type Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="type">Content Type</Label>
-            <Select 
-              value={type} 
-              onValueChange={(value) => setValue("type", value as ContentType)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select content type" />
-              </SelectTrigger>
-              <SelectContent>
-                {ContentTypes.map((contentType) => (
-                  <SelectItem key={contentType} value={contentType}>
-                    <div className="flex items-center gap-2">
-                      {getTypeIcon(contentType as ContentType)}
-                      <span>{getContentTypeLabel(contentType as ContentType)}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-sm text-muted-foreground">{getContentTypeHelperText(type)}</p>
-            {errors.type && <p className="text-red-500 text-sm">{errors.type.message}</p>}
-          </div>
+      <Card>
+        <CardContent className="pt-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <ErrorMessage message={error} />
+
+            {/* Selected Content Type Display */}
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <div className="flex items-center gap-3">
+                {getTypeIcon(type)}
+                <div>
+                  <h3 className="font-medium">{getContentTypeLabel(type)}</h3>
+                  <p className="text-sm text-muted-foreground">{getContentTypeHelperText(type)}</p>
+                </div>
+              </div>
+            </div>
 
           {/* Title */}
           <div className="space-y-2">
@@ -271,34 +291,6 @@ export default function DynamicUploadForm() {
             </div>
           )}
 
-          {/* Slug - Optional */}
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <Label htmlFor="slug">Slug (URL-friendly name)</Label>
-              <Button 
-                type="button" 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => {
-                  setValue("slug", generateSlug(title));
-                  setSlugGenerated(true);
-                }}
-                className="text-xs"
-              >
-                Generate from title
-              </Button>
-            </div>
-            <Input
-              id="slug"
-              {...register("slug")}
-              placeholder="url-friendly-name"
-              onChange={(e) => {
-                setSlugGenerated(true);
-                setValue("slug", e.target.value);
-              }}
-            />
-            {errors.slug && <p className="text-red-500 text-sm">{errors.slug.message}</p>}
-          </div>
 
           {/* Description */}
           <div className="space-y-2">
@@ -457,8 +449,9 @@ export default function DynamicUploadForm() {
               {isSubmitting ? "Uploading..." : "Upload Content"}
             </Button>
           </div>
-        </form>
-      </CardContent>
-    </Card>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

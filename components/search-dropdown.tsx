@@ -128,9 +128,8 @@ export function SearchDropdown() {
   }
 
   const handleResultClick = (result: SearchResult) => {
-    // Convert content type to slug format
-    const typeSlug = result.type.toLowerCase().replace(/\s+/g, '-')
-    router.push(`/content-view/${typeSlug}/${result.slug}`)
+    // Navigate to content by ID instead of slug
+    router.push(`/view/${result._id}`)
     setIsOpen(false)
   }
 
@@ -154,7 +153,7 @@ export function SearchDropdown() {
               setIsOpen(true)
             }
           }}
-          className="w-full pl-10 pr-10"
+          className="w-full pl-10 pr-10 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
         />
         <Search 
           className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" 
@@ -173,7 +172,7 @@ export function SearchDropdown() {
       </form>
 
       {isOpen && (results.length > 0 || isLoading) && (
-        <div className="absolute z-50 w-full bg-white dark:bg-gray-800 mt-1 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden max-h-[calc(100vh-200px)] overflow-y-auto">
+        <div className="absolute z-50 w-full bg-white dark:bg-gray-800 mt-1 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden max-h-[calc(100vh-200px)] md:max-h-96 overflow-y-auto">
           <div className="p-2 border-b border-gray-200 dark:border-gray-700 flex flex-wrap gap-1">
             {ContentTypes.map((type) => (
               <Badge 

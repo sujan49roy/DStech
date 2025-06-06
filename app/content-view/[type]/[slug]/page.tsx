@@ -9,26 +9,39 @@ import { formatDistanceToNow } from "date-fns"
 import { ArrowLeft, Edit, Trash2 } from "lucide-react"
 import Link from "next/link"
 
-export default function ViewContentPage({ params }: { params: { type: string, slug: string } }) {
+export default function ViewContentPage({ params }: { params: Promise<{ type: string, slug: string }> }) {
   const router = useRouter()
   const [content, setContent] = useState<Content | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [contentType, setContentType] = useState<string | null>(null)
+  const [contentSlug, setContentSlug] = useState<string | null>(null)
 
   useEffect(() => {
+    const resolveParams = async () => {
+      const { type, slug } = await params
+      setContentType(type)
+      setContentSlug(slug)
+    }
+    resolveParams()
+  }, [params])
+
+  useEffect(() => {
+    if (!contentType || !contentSlug) return
+
     const fetchContent = async () => {
       try {
         // Construct type from slug (convert hyphenated to space-separated)
-        const contentType = params.type
+        const formattedContentType = contentType
           .split('-')
           .map(word => word.charAt(0).toUpperCase() + word.slice(1))
           .join(' ')
 
-        console.log("Fetching content:", { type: contentType, slug: params.slug });
+        console.log("Fetching content:", { type: formattedContentType, slug: contentSlug });
 
         const queryParams = new URLSearchParams({
-          slug: params.slug,
-          type: contentType
+          slug: contentSlug,
+          type: formattedContentType
         })
 
         const response = await fetch(`/api/contents/by-slug?${queryParams.toString()}`)
@@ -51,10 +64,10 @@ export default function ViewContentPage({ params }: { params: { type: string, sl
     }
 
     fetchContent()
-  }, [params.type, params.slug])
+  }, [contentType, contentSlug])
 
   const handleDelete = async () => {
-    if (!content || !confirm("Are you sure you want to delete this content?")) {
+    if (!content || !contentType || !confirm("Are you sure you want to delete this content?")) {
       return
     }
 
@@ -68,7 +81,7 @@ export default function ViewContentPage({ params }: { params: { type: string, sl
       }
 
       // Redirect to the content type listing page
-      router.push(`/content/${params.type}`)
+      router.push(`/content/${contentType}`)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")

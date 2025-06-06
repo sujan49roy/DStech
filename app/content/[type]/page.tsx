@@ -13,7 +13,7 @@ import { ErrorMessage } from "@/components/error-message"
 import { Plus, Search } from "lucide-react"
 import type { Content, ContentType } from "@/lib/models"
 
-export default function ContentTypePage({ params }: { params: { type: string } }) {
+export default function ContentTypePage({ params }: { params: Promise<{ type: string }> }) {
   const router = useRouter()
   const [contents, setContents] = useState<Content[]>([])
   const [filteredContents, setFilteredContents] = useState<Content[]>([])
@@ -21,10 +21,11 @@ export default function ContentTypePage({ params }: { params: { type: string } }
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [activeLetter, setActiveLetter] = useState<string | null>(null)
+  const [typeFromParams, setTypeFromParams] = useState<string | null>(null)
 
   // Convert URL param to proper content type
-  const typeFromParams = params.type;
   const contentType = useMemo(() => {
+    if (!typeFromParams) return null
     return typeFromParams
       .split("-")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -32,6 +33,16 @@ export default function ContentTypePage({ params }: { params: { type: string } }
   }, [typeFromParams]);
 
   useEffect(() => {
+    const resolveParams = async () => {
+      const { type } = await params
+      setTypeFromParams(type)
+    }
+    resolveParams()
+  }, [params])
+
+  useEffect(() => {
+    if (!contentType) return
+
     const fetchContents = async () => {
       setLoading(true)
       try {
@@ -105,6 +116,14 @@ export default function ContentTypePage({ params }: { params: { type: string } }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     }
+  }
+
+  if (!contentType) {
+    return (
+      <div className="container mx-auto py-4">
+        <div className="text-center py-8">Loading...</div>
+      </div>
+    )
   }
 
   return (

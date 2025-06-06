@@ -111,14 +111,14 @@ export default function ProfilePage() {
   const totalContents = contents.length
 
   return (
-    <div className="container mx-auto py-4">
-      <h1 className="text-3xl font-bold mb-6">Profile</h1>
+    <div className="container mx-auto py-4 px-4 sm:px-6">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Profile</h1>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-          <TabsTrigger value="contents">My Contents</TabsTrigger>
+        <TabsList className="mb-4 sm:mb-6 w-full sm:w-auto">
+          <TabsTrigger value="overview" className="flex-1 sm:flex-none">Overview</TabsTrigger>
+          <TabsTrigger value="settings" className="flex-1 sm:flex-none">Settings</TabsTrigger>
+          <TabsTrigger value="contents" className="flex-1 sm:flex-none">My Contents</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -187,11 +187,11 @@ export default function ProfilePage() {
               <form className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
-                  <Input id="name" defaultValue={user.name} />
+                  <Input id="name" defaultValue={user.name} disabled className="bg-gray-50 dark:bg-gray-700" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" defaultValue={user.email} />
+                  <Input id="email" type="email" defaultValue={user.email} disabled className="bg-gray-50 dark:bg-gray-700" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="current-password">Current Password</Label>

@@ -49,11 +49,13 @@ export default function RegisterPage() {
         throw new Error(data.error || "Failed to register")
       }
 
-      router.push("/")
-      router.refresh()
+      // Small delay to ensure cookie is set properly
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Force a complete page reload to ensure navbar updates
+      window.location.href = "/dashboard"
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
-    } finally {
       setIsLoading(false)
     }
   }
@@ -73,7 +75,7 @@ export default function RegisterPage() {
             <ErrorMessage message={error} />
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required placeholder="Sujan Mishra" />
+              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required placeholder="John Doe" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -83,7 +85,7 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="sujanmishra@email.com"
+                placeholder="your_name@email.com"
               />
             </div>
             <div className="space-y-2">

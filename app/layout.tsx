@@ -57,15 +57,14 @@ const handleContentClick = () => {
               onContentClick={handleContentClick}
               onUserChange={handleUserChange} // Add this prop
             />
-            <div className="flex flex-1 pt-32 bg-background"> {/* pt-16 to account for NavBar height, adjust as needed */}
+            <div className="flex flex-1 pt-32 bg-background min-h-[calc(100vh-8rem)]"> {/* Increased min height for more space */}
              {user && <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />}
               {/* Main content area needs to be aware of sidebar */}
-              <main className={`flex-1 ${user ? "md:ml-64" : ""} p-6 mt-0`}> {/* Ensure no top margin if pt is on parent */}
+              <main className={`flex-1 ${user ? "md:ml-64" : ""} p-8 mt-0 mb-8`}> {/* Increased padding and added bottom margin */}
                 {children}
               </main>
-
             </div>
-                  <Footer />
+            <Footer />
           </div>
 
         </ThemeProvider>
