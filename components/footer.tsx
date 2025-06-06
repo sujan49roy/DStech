@@ -39,9 +39,8 @@ export function Footer({}: FooterProps) {
     checkAuthAndFetchContent();
   }, []);
 
-  return (
-    <footer className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 py-3 mt-auto px-4 sm:px-6">
-      <div className="container mx-auto max-w-6xl px-4">
+  return (    <footer className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 py-2 px-3 md:px-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="container mx-auto max-w-5xl px-0 md:px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-3">
           {/* Column 1: Name and Motto */}
           <div className="mb-6 md:mb-0 text-center md:text-left">
