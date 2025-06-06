@@ -16,17 +16,18 @@ export async function POST(request: NextRequest) {
     // Create the user
     const user = await createUser(userData)
 
-    // Set the user ID in a cookie
+    // Set the user ID in a cookie with enhanced security
     const cookieStore = cookies()
     ;(await cookieStore).set("userId", user._id!.toString(), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // Prevent CSRF
       maxAge: 60 * 60 * 24 * 7, // 1 week
       path: "/",
     })
 
-    // Return the user without the password
-    const { password, ...userWithoutPassword } = user
+    // Return the user without the password and passwordSalt
+    const { password, passwordSalt, ...userWithoutPassword } = user
     return NextResponse.json(userWithoutPassword, { status: 201 })
   } catch (error) {
     console.error("Error registering user:", error)
@@ -36,3 +37,4 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+

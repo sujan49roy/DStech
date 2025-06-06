@@ -13,20 +13,22 @@ export async function POST(request: NextRequest) {
     // Login the user
     const user = await loginUser(email, password)
 
-    // Set the user ID in a cookie
+    // Set the user ID in a cookie with enhanced security
     const cookieStore = cookies()
     ;(await cookieStore).set("userId", user._id!.toString(), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // Prevent CSRF
       maxAge: 60 * 60 * 24 * 7, // 1 week
       path: "/",
     })
 
-    // Return the user without the password
-    const { password: _, ...userWithoutPassword } = user
+    // Return the user without the password and passwordSalt
+    const { password: _, passwordSalt: __, ...userWithoutPassword } = user
     return NextResponse.json(userWithoutPassword)
   } catch (error) {
     console.error("Error logging in:", error)
     return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to login" }, { status: 401 })
   }
 }
+

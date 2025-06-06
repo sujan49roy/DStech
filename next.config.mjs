@@ -1,14 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    serverComponentsExternalPackages: ['mongodb'],
-  },
+  serverExternalPackages: ['mongodb'], // Fixed from experimental.serverComponentsExternalPackages
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: true, // Consider changing to false for production
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: true, // Consider changing to false for production
   },
   images: {
     unoptimized: true,
@@ -16,3 +14,4 @@ const nextConfig = {
 }
 
 export default nextConfig
+

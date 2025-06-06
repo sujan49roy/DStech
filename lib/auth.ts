@@ -5,9 +5,27 @@ import { redirect } from "next/navigation"
 import { ObjectId } from "mongodb"
 import * as crypto from "crypto"
 
-// Simple password hashing function
-export function hashPassword(password: string): string {
-  return crypto.createHash("sha256").update(password).digest("hex")
+// Improved password hashing function with salt
+export function hashPassword(password: string, salt?: string): { hash: string; salt: string } {
+  // Generate a random salt if not provided
+  const generatedSalt = salt || crypto.randomBytes(16).toString('hex');
+
+  // Use PBKDF2 with 1000 iterations and SHA-256
+  const hash = crypto.pbkdf2Sync(
+    password,
+    generatedSalt,
+    1000, // iterations
+    64,    // key length
+    'sha512'
+  ).toString('hex');
+
+  return { hash, salt: generatedSalt };
+}
+
+// Verify password
+export function verifyPassword(password: string, storedHash: string, storedSalt: string): boolean {
+  const { hash } = hashPassword(password, storedSalt);
+  return hash === storedHash;
 }
 
 // Create a new user
@@ -22,13 +40,14 @@ export async function createUser(userData: Omit<User, "_id" | "createdAt">): Pro
     throw new Error("User with this email already exists")
   }
 
-  // Hash the password
-  const hashedPassword = hashPassword(userData.password)
+  // Hash the password with salt
+  const { hash, salt } = hashPassword(userData.password);
 
-  // Create the user
+  // Create the user with hash and salt
   const newUser = {
     ...userData,
-    password: hashedPassword,
+    password: hash, // Store hash instead of raw password
+    passwordSalt: salt, // Store salt alongside the hash
     createdAt: new Date(),
   }
 
@@ -50,11 +69,26 @@ export async function loginUser(email: string, password: string): Promise<User> 
     throw new Error("Invalid email or password")
   }
 
-  // Check the password
-  const hashedPassword = hashPassword(password)
-  if (user.password !== hashedPassword) {
+  // Check if user has the old-style password (for backward compatibility)
+  if (!user.passwordSalt) {
+    // Using old SHA-256 method without salt
+    const oldStyleHash = crypto.createHash("sha256").update(password).digest("hex");
+    if (user.password !== oldStyleHash) {
     throw new Error("Invalid email or password")
   }
+
+    // Upgrade the password to the new hashing method
+    const { hash, salt } = hashPassword(password);
+    await db.collection("users").updateOne(
+      { _id: user._id },
+      { $set: { password: hash, passwordSalt: salt, updatedAt: new Date() } }
+  );
+  } else {
+    // Verify password with salt
+    if (!verifyPassword(password, user.password, user.passwordSalt)) {
+      throw new Error("Invalid email or password")
+  }
+}
 
   return user
 }
@@ -91,7 +125,6 @@ export async function logoutUser() {
   const cookieStore = cookies()
   ;(await cookieStore).delete("userId")
 }
- 
 
 // Update user name and email
 export async function updateUser(
@@ -124,12 +157,11 @@ export async function updateUser(
   if (userData.email !== undefined) {
     updatePayload.$set.email = userData.email;
   }
-  
+
   // Only add updatedAt if there are actual changes to name or email
   if (userData.name !== undefined || userData.email !== undefined) {
     updatePayload.$set.updatedAt = new Date();
   }
-
 
   // Only proceed if there's something to update (name or email)
   if (Object.keys(updatePayload.$set).length === 0 || (Object.keys(updatePayload.$set).length === 1 && updatePayload.$set.updatedAt)) {
@@ -145,7 +177,7 @@ export async function updateUser(
         return currentUser as User;
      }
   }
-  
+
   const result = await db
     .collection("users")
     .updateOne({ _id: new ObjectId(userId) }, updatePayload);
@@ -160,6 +192,7 @@ export async function updateUser(
   }
   return updatedUserDoc as User;
 }
+
 // Update user password
 export async function updateUserPassword(userId: string, currentPassword: string, newPassword: string): Promise<{ success: boolean; message?: string }> {
   const { db } = await connectToDatabase();
@@ -170,19 +203,33 @@ export async function updateUserPassword(userId: string, currentPassword: string
     throw new Error("User not found");
   }
 
-  // Check the current password
-  const hashedCurrentPassword = hashPassword(currentPassword);
-  if (user.password !== hashedCurrentPassword) {
+  let isCorrectPassword = false;
+
+  // Check if user has the old-style password (for backward compatibility)
+  if (!user.passwordSalt) {
+    // Using old SHA-256 method without salt
+    const oldStyleHash = crypto.createHash("sha256").update(currentPassword).digest("hex");
+    isCorrectPassword = user.password === oldStyleHash;
+  } else {
+    // Verify password with salt
+    isCorrectPassword = verifyPassword(currentPassword, user.password, user.passwordSalt);
+  }
+
+  if (!isCorrectPassword) {
     throw new Error("Invalid current password");
   }
 
-  // Hash the new password
-  const hashedNewPassword = hashPassword(newPassword);
+  // Hash the new password with salt
+  const { hash, salt } = hashPassword(newPassword);
 
   // Update the password
   const result = await db.collection("users").updateOne(
     { _id: new ObjectId(userId) },
-    { $set: { password: hashedNewPassword, updatedAt: new Date() } }
+    { $set: {
+      password: hash,
+      passwordSalt: salt,
+      updatedAt: new Date()
+    } }
   );
 
   if (result.modifiedCount === 0) {

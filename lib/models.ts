@@ -12,7 +12,8 @@ export interface Content {
   tags?: string[]
   coverImage?: string
   fileUrl?: string
-  userId: string // Add userId to associate content with users
+  userId: string
+  slug?: string
   createdAt: Date
   updatedAt: Date
 }
@@ -20,10 +21,23 @@ export interface Content {
 export interface User {
   _id?: ObjectId
   email: string
-  password: string // This will be hashed
+  password: string
+  passwordSalt?: string // Added for the new password hashing
   name: string
   createdAt: Date
   updatedAt?: Date
+}
+
+// Utility function to generate a slug
+export function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')     // Remove special characters
+    .replace(/\s+/g, '-')         // Replace spaces with hyphens
+    .replace(/-+/g, '-')          // Replace multiple hyphens with a single one
+    .replace(/^-+|-+$/g, '')      // Remove leading/trailing hyphens
+    .slice(0, 100)                // Limit slug length
 }
 
 export function validateContent(content: Partial<Content>): { isValid: boolean; errors: string[] } {
@@ -43,6 +57,14 @@ export function validateContent(content: Partial<Content>): { isValid: boolean; 
 
   if (!content.type || !ContentTypes.includes(content.type as ContentType)) {
     errors.push(`Type must be one of: ${ContentTypes.join(", ")}`)
+  }
+
+  // Optional slug validation
+  if (content.slug) {
+    const slugRegex = /^[a-z0-9]+(-[a-z0-9]+)*$/
+    if (!slugRegex.test(content.slug)) {
+      errors.push("Slug must be lowercase, contain only letters, numbers, and hyphens")
+    }
   }
 
   return {
@@ -75,3 +97,4 @@ export function validateUser(user: Partial<User>): { isValid: boolean; errors: s
     errors,
   }
 }
+

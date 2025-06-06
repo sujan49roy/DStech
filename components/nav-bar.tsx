@@ -3,13 +3,12 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { useRouter, usePathname } from "next/navigation" // Import usePathname
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"; // Import cn
 import { User, LogOut, Search, AlignLeft, Settings } from "lucide-react"
+import { SearchDropdown } from "@/components/search-dropdown" // Import our new SearchDropdown component
 
 
 
@@ -17,15 +16,14 @@ import { User, LogOut, Search, AlignLeft, Settings } from "lucide-react"
 interface NavBarProps {
   initialUser?: { name: string; email: string } | null
   onContentClick?: () => void
+  onUserChange?: (user: { name: string; email: string } | null) => void
 }
 
-export function NavBar({ initialUser, onContentClick }: NavBarProps) {
+export function NavBar({ initialUser, onContentClick, onUserChange }: NavBarProps) {
   const router = useRouter()
   const pathname = usePathname() // Get current pathname
   const [user, setUser] = useState(initialUser)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -33,17 +31,20 @@ export function NavBar({ initialUser, onContentClick }: NavBarProps) {
         if (response.ok) {
           const userData = await response.json()
           setUser(userData)
+          if (onUserChange) onUserChange(userData) // Notify parent about user state change
         } else {
           // If initialUser was provided, don't immediately nullify it
           // if the fetch fails, to prevent flicker on initial load.
           // Only set to null if there was no initialUser or if it's a subsequent fetch.
           if (!initialUser || user) { // user check means it's not the very first fetch
             setUser(null)
+            if (onUserChange) onUserChange(null) // Notify parent about user state change
           }
         }
       } catch (error) {
         if (!initialUser || user) {
            setUser(null)
+           if (onUserChange) onUserChange(null) // Notify parent about user state change
         }
       }
     }
@@ -56,6 +57,7 @@ export function NavBar({ initialUser, onContentClick }: NavBarProps) {
     try {
       await fetch("/api/auth/logout", { method: "POST" })
       setUser(null)
+      if (onUserChange) onUserChange(null) // Notify parent about user state change
       router.push("/login")
       router.refresh()
     } catch (error) {
@@ -63,16 +65,9 @@ export function NavBar({ initialUser, onContentClick }: NavBarProps) {
     }
   }
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
-    }
-  }
-
   return (
     <nav className={cn(
-      "fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg z-100 w-full max-w-none",
+      "fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg z-50 w-full max-w-none", // Change z-index from z-100 to z-50
       user ? "h-20" : "h-24" // Conditional height
     )}>
       <div className="mx-auto px-4 h-full bg-white ">
@@ -91,16 +86,7 @@ export function NavBar({ initialUser, onContentClick }: NavBarProps) {
           {/* Search Bar - Desktop */}
           {user && (
             <div className="hidden md:flex items-center max-w-md w-full mx-4">
-              <form onSubmit={handleSearch} className="w-full relative">
-                <Input
-                  type="search"
-                  placeholder="Search knowledge base..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10"
-                />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-              </form>
+              <SearchDropdown />
             </div>
           )}
 
@@ -183,18 +169,11 @@ export function NavBar({ initialUser, onContentClick }: NavBarProps) {
 
         {/* Mobile search bar and Content button */}
         {user && (
-          <div className="md:hidden py-2">
+          <div className="md:hidden py-2 relative z-10"> {/* Added relative and z-10 */}
             <div className="flex items-center space-x-3">
-              <form onSubmit={handleSearch} className="flex-1 relative">
-                <Input
-                  type="search"
-                  placeholder="Search knowledge base..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10"
-                />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 bg-white " size={18} />
-              </form>
+              <div className="flex-1 relative">
+                <SearchDropdown />
+              </div>
              <Button
                 variant="ghost"
                 size="icon"
@@ -203,6 +182,7 @@ export function NavBar({ initialUser, onContentClick }: NavBarProps) {
                   onContentClick?.();
                 }}
                 aria-label="Open sidebar"
+                className="flex-shrink-0"
               >
                 <AlignLeft size={20} />
               </Button>
