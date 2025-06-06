@@ -92,7 +92,7 @@ export default function DashboardPage() {
   const totalContents = contents.length
 
   return (
-    <div className="container mx-auto py-4">
+    <div className="container mx-auto py-4 overflow-hidden">
       {/* Welcome Section */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Welcome back, {user?.name}!</h1>
@@ -114,11 +114,11 @@ export default function DashboardPage() {
                 const count = contentCounts[type] || 0
                 return (
                   <Link key={type} href={`/content/${type.toLowerCase().replace(/\s+/g, "-")}`}>
-                    <Card className="hover:shadow-md transition-shadow">
+                    <Card className="hover:shadow-md transition-shadow overflow-hidden">
                       <CardHeader className="pb-2">
                         <CardTitle className="flex items-center text-lg">
-                          <Icon className="mr-2 h-5 w-5 text-blue-500" />
-                          {type}s
+                          <Icon className="mr-2 h-5 w-5 text-blue-500 flex-shrink-0" />
+                          <span className="truncate">{type}s</span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
@@ -156,10 +156,10 @@ export default function DashboardPage() {
                 featuredContents.map((content) => {
                   const Icon = contentTypeIcons[content.type as keyof typeof contentTypeIcons]
                   return (
-                    <Card key={content._id?.toString()} className="hover:shadow-md transition-shadow">
+                    <Card key={content._id?.toString()} className="hover:shadow-md transition-shadow overflow-hidden">
                       <CardHeader className="pb-2">
                         <div className="flex justify-between items-start">
-                          <CardTitle className="line-clamp-1">{content.title}</CardTitle>
+                          <CardTitle className="line-clamp-1 max-w-[80%]">{content.title}</CardTitle>
                           <Icon className="h-5 w-5 text-blue-500 shrink-0" />
                         </div>
                         <CardDescription className="text-xs">
@@ -247,3 +247,4 @@ export default function DashboardPage() {
     </div>
   )
 }
+

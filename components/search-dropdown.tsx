@@ -135,7 +135,7 @@ export function SearchDropdown() {
 
   return (
     <div className="relative w-full" ref={dropdownRef}>
-      <form onSubmit={handleSearch} className="relative">
+      <form onSubmit={handleSearch} className="relative w-full mx-0">
         <Input
           ref={inputRef}
           type="search"
@@ -153,26 +153,26 @@ export function SearchDropdown() {
               setIsOpen(true)
             }
           }}
-          className="w-full pl-10 pr-10 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+          className="w-full pl-8 pr-8 bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-600 rounded-md text-sm h-9"
         />
         <Search 
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" 
-          size={18} 
+          className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer"
+          size={16}
           onClick={() => performSearch(searchQuery)}
         />
         {searchQuery.length > 0 && (
           <button
             type="button"
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
             onClick={clearSearch}
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         )}
       </form>
 
       {isOpen && (results.length > 0 || isLoading) && (
-        <div className="absolute z-50 w-full bg-white dark:bg-gray-800 mt-1 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden max-h-[calc(100vh-200px)] md:max-h-96 overflow-y-auto">
+        <div className="absolute z-[60] w-full bg-white dark:bg-gray-800 mt-1 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden max-h-[calc(100vh-200px)] md:max-h-96 overflow-y-auto">
           <div className="p-2 border-b border-gray-200 dark:border-gray-700 flex flex-wrap gap-1">
             {ContentTypes.map((type) => (
               <Badge 

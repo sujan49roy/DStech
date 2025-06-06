@@ -46,7 +46,7 @@ export function ContentTypeNavigation({ selectedType, onTypeSelect }: ContentTyp
         {ContentTypes.map((type) => (
           <Card 
             key={type} 
-            className={`cursor-pointer transition-all hover:shadow-md ${
+            className={`cursor-pointer transition-all hover:shadow-md overflow-hidden ${
               selectedType === type 
                 ? "ring-2 ring-primary bg-primary/5" 
                 : "hover:bg-muted/50"
@@ -63,8 +63,8 @@ export function ContentTypeNavigation({ selectedType, onTypeSelect }: ContentTyp
                   {getTypeIcon(type as ContentType)}
                 </div>
                 <div>
-                  <h3 className="font-medium text-xs sm:text-sm">{type}</h3>
-                  <p className="text-xs text-muted-foreground mt-1 hidden sm:block">
+                  <h3 className="font-medium text-xs sm:text-sm truncate max-w-full">{type}</h3> {/* Added truncate */}
+                  <p className="text-xs text-muted-foreground mt-1 hidden sm:block line-clamp-2"> {/* Added line-clamp-2 */}
                     {getTypeDescription(type as ContentType)}
                   </p>
                 </div>

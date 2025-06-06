@@ -1,10 +1,8 @@
-
-
 "use client"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ContentTypes } from "@/lib/models"
 import {
@@ -35,6 +33,7 @@ export function Sidebar({ isOpen: initialIsOpen = false, onToggle }: { isOpen?: 
   const [isOpen, setIsOpen] = useState(initialIsOpen)
   const [isMobile, setIsMobile] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
 
  useEffect(() => {
   const checkMobile = () => {
@@ -56,11 +55,19 @@ useEffect(() => {
     if (onToggle) onToggle()
   }
 
-  const handleNavClick = () => {
+  const handleNavClick = (href: string) => {
     if (isMobile) {
       setIsOpen(false)
       if (onToggle) onToggle()
+
+      // Use setTimeout to ensure the sidebar closes visually before navigation
+      setTimeout(() => {
+        router.push(href)
+      }, 100)
+
+      return false // Prevent default Link behavior
     }
+    return true
   }
 
   return (
@@ -68,7 +75,7 @@ useEffect(() => {
       {/* Overlay for mobile when sidebar is open */}
       {isOpen && isMobile && (
         <div
-          className="fixed inset-0 bg-white bg-opacity-25 z-40"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={toggleSidebar}
           aria-hidden="true"
         />
@@ -76,7 +83,7 @@ useEffect(() => {
 
       <div
         className={cn(
-          "fixed top-32 md:top-20 bottom-0 left-0 z-30 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out overflow-y-auto",
+          "fixed top-32 md:top-20 bottom-0 left-0 z-50 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out overflow-y-auto",
           isOpen || !isMobile ? "w-64 translate-x-0" : "-translate-x-full mt-20"
         )}
         onClick={(e) => e.stopPropagation()}
@@ -98,11 +105,10 @@ useEffect(() => {
 
         <div className="py-2 h-full">
           <nav className="space-y-1 px-3">
-            <Link
-              href="/dashboard"
-              onClick={handleNavClick}
+            <div
+              onClick={() => handleNavClick("/dashboard")}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium mt-4",
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium mt-4 cursor-pointer",
                 pathname === "/dashboard"
                   ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
                   : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -110,7 +116,7 @@ useEffect(() => {
             >
               <Home className="h-5 w-5" />
               <span>Dashboard</span>
-            </Link>
+            </div>
 
             <div className="pt-4 pb-2">
               <div className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -122,12 +128,11 @@ useEffect(() => {
               const Icon = contentTypeIcons[type]
               const path = `/content/${type.toLowerCase().replace(/\s+/g, "-")}`
               return (
-                <Link
+                <div
                   key={type}
-                  href={path}
-                  onClick={handleNavClick}
+                  onClick={() => handleNavClick(path)}
                   className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
+                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium cursor-pointer",
                     pathname === path
                       ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
                       : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -135,7 +140,7 @@ useEffect(() => {
                 >
                   <Icon className="h-5 w-5" />
                   <span>{type}s</span>
-                </Link>
+                </div>
               )
             })}
 
@@ -145,11 +150,10 @@ useEffect(() => {
               </div>
             </div>
 
-            <Link
-              href="/github-repositories"
-              onClick={handleNavClick}
+            <div
+              onClick={() => handleNavClick("/github-repositories")}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium cursor-pointer",
                 pathname === "/github-repositories"
                   ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
                   : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -157,7 +161,7 @@ useEffect(() => {
             >
               <Github className="h-5 w-5" />
               <span>GitHub Repositories</span>
-            </Link>
+            </div>
 
             <div className="pt-4 pb-2">
               <div className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -165,11 +169,10 @@ useEffect(() => {
               </div>
             </div>
 
-            <Link
-              href="/profile"
-              onClick={handleNavClick}
+            <div
+              onClick={() => handleNavClick("/profile")}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium cursor-pointer",
                 pathname === "/profile"
                   ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
                   : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -177,13 +180,12 @@ useEffect(() => {
             >
               <User className="h-5 w-5" />
               <span>Profile</span>
-            </Link>
+            </div>
 
-            <Link
-              href="/upload"
-              onClick={handleNavClick}
+            <div
+              onClick={() => handleNavClick("/upload")}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium mt-4",
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium mt-4 cursor-pointer",
                 pathname === "/upload"
                   ? "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100"
                   : "text-blue-700 bg-blue-50 hover:bg-blue-100 dark:text-blue-300 dark:bg-blue-900/20 dark:hover:bg-blue-900/30"
@@ -191,7 +193,7 @@ useEffect(() => {
             >
               <Plus className="h-5 w-5" />
               <span>Upload Content</span>
-            </Link>
+            </div>
           </nav>
         </div>
       </div>

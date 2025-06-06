@@ -51,26 +51,23 @@ const handleContentClick = () => {
     <html lang="en" suppressHydrationWarning={true}>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <div className="flex flex-col min-h-screen ">
+          <div className="flex flex-col min-h-screen relative"> {/* Added relative positioning */}
             <NavBar
               initialUser={safeUser}
               onContentClick={handleContentClick}
               onUserChange={handleUserChange} // Add this prop
             />
-            <div className="flex flex-1 pt-32 bg-background min-h-[calc(100vh-8rem)]"> {/* Increased min height for more space */}
+            <div className="flex flex-1 pt-32 bg-background min-h-[calc(100vh-8rem)] relative z-0"> {/* Added explicit z-index */}
              {user && <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />}
               {/* Main content area needs to be aware of sidebar */}
-              <main className={`flex-1 ${user ? "md:ml-64" : ""} p-8 mt-0 mb-8`}> {/* Increased padding and added bottom margin */}
+              <main className={`flex-1 ${user ? "md:ml-64" : ""} p-4 md:p-8 mt-0 mb-8 overflow-hidden`}> {/* Added overflow-hidden and responsive padding */}
                 {children}
               </main>
             </div>
             <Footer />
           </div>
-
         </ThemeProvider>
-
       </body>
-       
     </html>
   )
 }

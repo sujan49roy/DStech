@@ -10,9 +10,6 @@ import { cn } from "@/lib/utils"; // Import cn
 import { User, LogOut, Search, AlignLeft, Settings } from "lucide-react"
 import { SearchDropdown } from "@/components/search-dropdown" // Import our new SearchDropdown component
 
-
-
-
 interface NavBarProps {
   initialUser?: { name: string; email: string } | null
   onContentClick?: () => void
@@ -72,7 +69,7 @@ export function NavBar({ initialUser, onContentClick, onUserChange }: NavBarProp
       "fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg z-50 w-full max-w-none", // Change z-index from z-100 to z-50
       user ? "h-20" : "h-24" // Conditional height
     )}>
-      <div className="mx-auto px-4 h-full bg-white dark:bg-gray-800">
+      <div className="mx-auto h-full bg-white dark:bg-gray-800 md:px-4 px-2"> {/* Changed px-0 to px-2 for minimal mobile padding */}
         <div className={cn("flex justify-between items-center h-full")}>
           {/* Logo */}
           <div className="flex items-center">
@@ -80,7 +77,7 @@ export function NavBar({ initialUser, onContentClick, onUserChange }: NavBarProp
               {/* Image removed as per request */}
               <span className={cn(
                 "font-bold font-sans",
-                user ? "text-2xl" : "text-4xl mx-6" // Updated conditional text size
+                user ? "text-2xl" : "text-4xl md:mx-6 mx-0" // Updated for better mobile fit
               )}>DStech</span>
             </Link>
           </div>
@@ -163,18 +160,19 @@ export function NavBar({ initialUser, onContentClick, onUserChange }: NavBarProp
               size="icon"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+              className="p-1" /* Reduced padding for mobile */
             >
-              <User size={24} />
+              <User size={20} /> {/* Reduced size from 24 to 20 */}
             </Button>
           </div>
         </div>
 
         {/* Mobile search bar and Content button */}
         {user && (
-          <div className="md:hidden py-2 relative z-10 bg-white dark:bg-gray-800"> {/* Added background to match navbar */}
-            <div className="flex items-center space-x-3">
+          <div className="md:hidden py-1 relative z-10 bg-white dark:bg-gray-800 w-full"> {/* Changed bg-gray-800 to bg-white for light mode and reduced py-2 to py-1 */}
+            <div className="flex items-center space-x-2 w-full"> {/* Reduced space-x-3 to space-x-2 */}
               <div className="flex-1 relative">
-                <div className="bg-white dark:bg-gray-800"> {/* Ensure search dropdown has same background */}
+                <div className="bg-white dark:bg-gray-800 w-full"> {/* Changed bg-gray-800 to bg-white for light mode */}
                   <SearchDropdown />
                 </div>
               </div>
@@ -186,9 +184,9 @@ export function NavBar({ initialUser, onContentClick, onUserChange }: NavBarProp
                   onContentClick?.();
                 }}
                 aria-label="Open sidebar"
-                className="flex-shrink-0"
+                className="flex-shrink-0 p-1 mr-1" /* Reduced padding and margin */
               >
-                <AlignLeft size={20} />
+                <AlignLeft size={18} /> {/* Reduced size from 20 to 18 */}
               </Button>
             </div>
           </div>
@@ -203,17 +201,22 @@ export function NavBar({ initialUser, onContentClick, onUserChange }: NavBarProp
                 <Link
                   href="/profile"
                   className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                  onClick={() => setIsMenuOpen(false)}
                 >
                   Profile
                 </Link>
                 <Link
                   href="/settings"
                   className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                  onClick={() => setIsMenuOpen(false)}
                 >
                   Settings
                 </Link>
                 <button
-                  onClick={handleLogout}
+                  onClick={() => {
+                    handleLogout();
+                    setIsMenuOpen(false);
+                  }}
                   className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                 >
                   Logout
@@ -224,12 +227,14 @@ export function NavBar({ initialUser, onContentClick, onUserChange }: NavBarProp
                 <Link
                   href="/login"
                   className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                  onClick={() => setIsMenuOpen(false)}
                 >
                   Login
                 </Link>
                 <Link
                   href="/register"
                   className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                  onClick={() => setIsMenuOpen(false)}
                 >
                   Register
                 </Link>
