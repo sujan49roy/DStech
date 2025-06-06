@@ -69,13 +69,12 @@ useEffect(() => {
     }
     return true
   }
-
   return (
-    <div className="fixed top-2 rounded-md">
+    <div className="relative">
       {/* Overlay for mobile when sidebar is open */}
       {isOpen && isMobile && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 bg-black bg-opacity-50 z-35"
           onClick={toggleSidebar}
           aria-hidden="true"
         />
@@ -83,14 +82,13 @@ useEffect(() => {
 
       <div
         className={cn(
-          "fixed top-32 md:top-20 bottom-0 left-0 z-50 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out overflow-y-auto",
-          isOpen || !isMobile ? "w-64 translate-x-0" : "-translate-x-full mt-20"
+          "fixed top-16 md:top-20 bottom-0 left-0 z-40 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out overflow-y-auto",
+          isOpen || !isMobile ? "w-64 translate-x-0" : "-translate-x-full"
         )}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sidebar header with close button for mobile */}
-        {isMobile && isOpen && (
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+        {isMobile && isOpen && (          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-semibold">Menu</h2>
             <Button
               variant="ghost"
@@ -102,6 +100,14 @@ useEffect(() => {
             </Button>
           </div>
         )}
+
+        <div className="py-4 px-4">
+          <input
+            type="search"
+            placeholder="Search blogs..."
+            className="w-full px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
 
         <div className="py-2 h-full">
           <nav className="space-y-1 px-3">
