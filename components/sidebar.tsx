@@ -86,15 +86,15 @@ useEffect(() => {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sidebar header with close button for mobile */}
-        {isMobile && isOpen && (          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold">Menu</h2>
+        {isMobile && isOpen && (          <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-base font-semibold">Menu</h2>
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleSidebar}
               aria-label="Close sidebar"
             >
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5" />
             </Button>
           </div>
         )}
@@ -103,18 +103,34 @@ useEffect(() => {
         
         </div>        <div className="py-1 h-full">
           <nav className="space-y-0.5 px-2">
-            <div
-              onClick={() => handleNavClick("/dashboard")}
-              className={cn(
-                "flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs md:text-sm font-medium mt-2 cursor-pointer",
-                pathname === "/dashboard"
-                  ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
-                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-              )}
-            >
-              <Home className="h-5 w-5" />
-              <span>Dashboard</span>
-            </div>
+            {isMobile ? (
+              <div
+                onClick={() => handleNavClick("/dashboard")}
+                className={cn(
+                  "flex items-center gap-2 rounded-md px-2 py-1 text-xs font-medium mt-2 cursor-pointer",
+                  pathname === "/dashboard"
+                    ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
+                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                )}
+              >
+                <Home className="h-4 w-4" />
+                <span className="text-xs">Dashboard</span>
+              </div>
+            ) : (
+              <Link href="/dashboard" passHref>
+                <div
+                  className={cn(
+                    "flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs md:text-sm font-medium mt-2 cursor-pointer",
+                    pathname === "/dashboard"
+                      ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
+                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                  )}
+                >
+                  <Home className="h-5 w-5" />
+                  <span>Dashboard</span>
+                </div>
+              </Link>
+            )}
 
             <div className="pt-4 pb-2">
               <div className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -125,20 +141,34 @@ useEffect(() => {
             {ContentTypes.map((type) => {
               const Icon = contentTypeIcons[type]
               const path = `/content/${type.toLowerCase().replace(/\s+/g, "-")}`
-              return (
+              return isMobile ? (
                 <div
                   key={type}
                   onClick={() => handleNavClick(path)}
                   className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium cursor-pointer",
+                    "flex items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium cursor-pointer",
                     pathname === path
                       ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
                       : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                   )}
                 >
-                  <Icon className="h-5 w-5" />
-                  <span>{type}s</span>
+                  <Icon className="h-4 w-4" />
+                  <span className="text-xs">{type}s</span>
                 </div>
+              ) : (
+                <Link href={path} key={type} passHref>
+                  <div
+                    className={cn(
+                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium cursor-pointer",
+                      pathname === path
+                        ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
+                        : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span>{type}s</span>
+                  </div>
+                </Link>
               )
             })}
 
@@ -148,18 +178,34 @@ useEffect(() => {
               </div>
             </div>
 
-            <div
-              onClick={() => handleNavClick("/github-repositories")}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium cursor-pointer",
-                pathname === "/github-repositories"
-                  ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
-                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-              )}
-            >
-              <Github className="h-5 w-5" />
-              <span>GitHub Repositories</span>
-            </div>
+            {isMobile ? (
+              <div
+                onClick={() => handleNavClick("/github-repositories")}
+                className={cn(
+                  "flex items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium cursor-pointer",
+                  pathname === "/github-repositories"
+                    ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
+                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                )}
+              >
+                <Github className="h-4 w-4" />
+                <span className="text-xs">GitHub Repositories</span>
+              </div>
+            ) : (
+              <Link href="/github-repositories" passHref>
+                <div
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium cursor-pointer",
+                    pathname === "/github-repositories"
+                      ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
+                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                  )}
+                >
+                  <Github className="h-5 w-5" />
+                  <span>GitHub Repositories</span>
+                </div>
+              </Link>
+            )}
 
             <div className="pt-4 pb-2">
               <div className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -167,31 +213,63 @@ useEffect(() => {
               </div>
             </div>
 
-            <div
-              onClick={() => handleNavClick("/profile")}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium cursor-pointer",
-                pathname === "/profile"
-                  ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
-                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-              )}
-            >
-              <User className="h-5 w-5" />
-              <span>Profile</span>
-            </div>
+            {isMobile ? (
+              <div
+                onClick={() => handleNavClick("/profile")}
+                className={cn(
+                  "flex items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium cursor-pointer",
+                  pathname === "/profile"
+                    ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
+                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                )}
+              >
+                <User className="h-4 w-4" />
+                <span className="text-xs">Profile</span>
+              </div>
+            ) : (
+              <Link href="/profile" passHref>
+                <div
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium cursor-pointer",
+                    pathname === "/profile"
+                      ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
+                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                  )}
+                >
+                  <User className="h-5 w-5" />
+                  <span>Profile</span>
+                </div>
+              </Link>
+            )}
 
-            <div
-              onClick={() => handleNavClick("/upload")}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium mt-4 cursor-pointer",
-                pathname === "/upload"
-                  ? "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100"
-                  : "text-blue-700 bg-blue-50 hover:bg-blue-100 dark:text-blue-300 dark:bg-blue-900/20 dark:hover:bg-blue-900/30"
-              )}
-            >
-              <Plus className="h-5 w-5" />
-              <span>Upload Content</span>
-            </div>
+            {isMobile ? (
+              <div
+                onClick={() => handleNavClick("/upload")}
+                className={cn(
+                  "flex items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium mt-4 cursor-pointer",
+                  pathname === "/upload"
+                    ? "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100"
+                    : "text-blue-700 bg-blue-50 hover:bg-blue-100 dark:text-blue-300 dark:bg-blue-900/20 dark:hover:bg-blue-900/30"
+                )}
+              >
+                <Plus className="h-4 w-4" />
+                <span className="text-xs">Upload Content</span>
+              </div>
+            ) : (
+              <Link href="/upload" passHref>
+                <div
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium mt-4 cursor-pointer",
+                    pathname === "/upload"
+                      ? "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100"
+                      : "text-blue-700 bg-blue-50 hover:bg-blue-100 dark:text-blue-300 dark:bg-blue-900/20 dark:hover:bg-blue-900/30"
+                  )}
+                >
+                  <Plus className="h-5 w-5" />
+                  <span>Upload Content</span>
+                </div>
+              </Link>
+            )}
           </nav>
         </div>
       </div>
