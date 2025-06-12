@@ -14,6 +14,25 @@ export async function GET(request: NextRequest) {
   let currentUserIdString: string | undefined;
   let searchQueryParam: string | null = null;
 
+  // Define the toObjectIdArray helper function here
+  const toObjectIdArray = (arr: any[] | undefined | null, loggerInstance: any): ObjectId[] => {
+    if (!Array.isArray(arr)) return [];
+    return arr.map(id => {
+      if (id instanceof ObjectId) return id;
+      if (typeof id === 'string' && ObjectId.isValid(id)) return new ObjectId(id);
+      // Ensure loggerInstance has a 'warn' method.
+      // If loggerInstance is the global logger, it should have .warn
+      // If it's a different structure, adjust the call accordingly.
+      if (loggerInstance && typeof loggerInstance.warn === 'function') {
+        loggerInstance.warn({ message: "Invalid ID format in user's relation arrays during search processing", idValue: id });
+      } else {
+        // Fallback if loggerInstance is not as expected, or log to console.
+        console.warn("Logger instance issue or invalid ID format:", { message: "Invalid ID format in user's relation arrays during search processing", idValue: id });
+      }
+      return null;
+    }).filter(id => id !== null) as ObjectId[];
+  };
+
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser || !currentUser._id) {
@@ -100,9 +119,10 @@ export async function GET(request: NextRequest) {
       let status: UserSearchResult["relationshipStatus"] = "none";
       const userId = user._id!;
 
-      const friends = Array.isArray(currentUser.friends) ? currentUser.friends : [];
-      const outgoingRequests = Array.isArray(currentUser.outgoingRequests) ? currentUser.outgoingRequests : [];
-      const incomingRequests = Array.isArray(currentUser.incomingRequests) ? currentUser.incomingRequests : [];
+      // Apply the helper function
+      const friends = toObjectIdArray(currentUser.friends, logger);
+      const outgoingRequests = toObjectIdArray(currentUser.outgoingRequests, logger);
+      const incomingRequests = toObjectIdArray(currentUser.incomingRequests, logger);
 
       if (friends.some(friendId => friendId.equals(userId))) {
         status = "friends";
