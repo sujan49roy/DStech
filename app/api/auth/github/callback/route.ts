@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Server configuration error.' }, { status: 500 });
   }
 
-  const redirectUri = `${nextAuthUrl}/api/auth/github/callback`;
+  const redirectUri = `https://dstechnology.vercel.app/api/auth/github/callback`;
 
   try {
     // 7. Exchange code for access token
