@@ -2,17 +2,17 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import { logger, apiErrorResponse } from "@/lib/logger";
-import type { User } from "@/lib/models"; // Assuming User is exported from lib/models
+import type { User } from "@/lib/models";
 import { ObjectId } from "mongodb";
 
-// Define a type for the search results to include relationship status
-interface UserSearchResult extends Partial<User> { // Use Partial<User> for projected fields
+interface UserSearchResult extends Partial<User> {
+  id?: string; // id is added in mapping, ensure it's part of the interface if used directly
   relationshipStatus: "friends" | "request_sent" | "request_received" | "none";
 }
 
 export async function GET(request: NextRequest) {
   let currentUserIdString: string | undefined;
-  let searchQueryParam: string | null = null; // For logging in catch
+  let searchQueryParam: string | null = null;
 
   try {
     const currentUser = await getCurrentUser();
@@ -24,15 +24,20 @@ export async function GET(request: NextRequest) {
     currentUserIdString = currentUser._id.toString();
     const currentUserId = new ObjectId(currentUserIdString);
 
-    searchQueryParam = request.nextUrl.searchParams.get("username");
-    logger.debug({
+    searchQueryParam = request.nextUrl.searchParams.get("username"); // Keep consistent with frontend param name
+
+    logger.info({ // Changed to info for better visibility of search queries
         message: "API: User search initiated",
         userId: currentUserIdString,
         searchQuery: searchQueryParam,
-        currentUserFriends: currentUser.friends?.length,
-        currentUserOutgoing: currentUser.outgoingRequests?.length,
-        currentUserIncoming: currentUser.incomingRequests?.length,
     });
+    // Log current user's friend/request arrays for context if needed for debugging relationship status
+    // logger.debug({
+    //     currentUserFriends: currentUser.friends?.map(id => id.toString()),
+    //     currentUserOutgoing: currentUser.outgoingRequests?.map(id => id.toString()),
+    //     currentUserIncoming: currentUser.incomingRequests?.map(id => id.toString()),
+    // });
+
 
     if (!searchQueryParam || searchQueryParam.trim().length < 3) {
       logger.warn(`API: User search - Invalid search query: '${searchQueryParam}' by user ${currentUserIdString}`);
@@ -43,36 +48,58 @@ export async function GET(request: NextRequest) {
     const db = await connectToDatabase();
     const usersCollection = db.collection<User>("users");
 
-    const searchRegex = new RegExp(searchQueryParam.trim(), 'i'); // Case-insensitive regex
+    const trimmedSearchQuery = searchQueryParam.trim();
+    const searchRegex = new RegExp(trimmedSearchQuery, 'i');
 
-    const foundUsers = await usersCollection.find(
-      {
-        _id: { $ne: currentUserId }, // Exclude current user
-        $or: [
-          { name: searchRegex },
-          { githubUsername: searchRegex }
-          // Add other fields like a dedicated 'username' if it exists on the User model
-        ]
-      },
-      {
-        projection: {
-          _id: 1,
-          name: 1,
-          email: 1, // Consider if email should be returned in search results; often yes for identification
-          githubUsername: 1,
-          // Exclude sensitive data by not including them
-        }
-      }
-    ).limit(20) // Limit results to prevent overly large responses
+    logger.debug({ message: "API: Generated search regex", regex: searchRegex.toString() });
+
+    // **Crucial Diagnostic Step**
+    if (trimmedSearchQuery.toLowerCase() === "sujan mishra") { // Using toLowerCase for case-insensitive match
+      logger.info(`API: DIAGNOSTIC - Performing direct lookup for "Sujan Mishra" by name field.`);
+      const diagnosticUserByName = await usersCollection.findOne({ name: "Sujan Mishra" });
+      logger.info({ message: "API: DIAGNOSTIC - Result for findOne({ name: 'Sujan Mishra' })", diagnosticUserByName });
+
+      // Also try with the regex for the specific name to see if regex behaves differently
+      logger.info(`API: DIAGNOSTIC - Performing direct lookup for "Sujan Mishra" by name field with regex.`);
+      const diagnosticUserByNameRegex = await usersCollection.findOne({ name: searchRegex, _id: { $ne: currentUserId } });
+      logger.info({ message: "API: DIAGNOSTIC - Result for findOne({ name: /sujan mishra/i })", diagnosticUserByNameRegex });
+    }
+
+
+    const mongoQuery = {
+      _id: { $ne: currentUserId },
+      $or: [
+        { name: searchRegex },
+        { githubUsername: searchRegex }
+        // { email: searchRegex } // Optionally add email search if desired and appropriate for privacy
+      ]
+    };
+    logger.debug({ message: "API: MongoDB find query object", query: mongoQuery });
+
+    const projection = {
+      _id: 1,
+      name: 1,
+      email: 1,
+      githubUsername: 1,
+    };
+    logger.debug({ message: "API: MongoDB projection object", projection });
+
+    const foundUsers = await usersCollection.find(mongoQuery, { projection })
+     .limit(20)
      .toArray();
 
-    logger.debug({ message: "Raw users found from DB", count: foundUsers.length, data: foundUsers.map(u => u._id) });
+    logger.info({ // Changed to info for visibility
+        message: "API: Raw users found from DB before relationship status calculation",
+        count: foundUsers.length,
+        // Log first few users for quick inspection, avoiding overly large log objects
+        sampleData: foundUsers.slice(0, 3).map(u => ({ _id: u._id, name: u.name, ghUsername: u.githubUsername }))
+    });
+
 
     const resultsWithStatus: UserSearchResult[] = foundUsers.map(user => {
       let status: UserSearchResult["relationshipStatus"] = "none";
-      const userId = user._id!; // _id is guaranteed by projection
+      const userId = user._id!;
 
-      // Ensure currentUser fields are arrays before calling .some()
       const friends = Array.isArray(currentUser.friends) ? currentUser.friends : [];
       const outgoingRequests = Array.isArray(currentUser.outgoingRequests) ? currentUser.outgoingRequests : [];
       const incomingRequests = Array.isArray(currentUser.incomingRequests) ? currentUser.incomingRequests : [];
@@ -85,29 +112,32 @@ export async function GET(request: NextRequest) {
         status = "request_received";
       }
 
-      // Ensure only projected fields are part of the user object returned
-      const projectedUser: Partial<User> = {
-        _id: user._id,
+      const projectedUser: Partial<User> & { id?: string } = { // Ensure id is part of the type for clarity
+        _id: user._id, // Still keeping _id if needed internally or for other mappings
+        id: user._id!.toString(), // Explicitly map _id to id as string
         name: user.name,
         email: user.email,
         githubUsername: user.githubUsername,
       };
 
       return {
-        ...projectedUser, // Spread projected fields
-        id: user._id.toString(), // Add string id for frontend consistency
+        ...projectedUser,
         relationshipStatus: status,
       };
     });
 
-    logger.debug({ message: "Users with relationship status calculated", count: resultsWithStatus.length, data: resultsWithStatus.map(u => ({id: u.id, status: u.relationshipStatus})) });
-    logger.info(`API: User search by ${currentUserIdString} for query "${searchQueryParam}" returned ${resultsWithStatus.length} results.`);
+    logger.info({ // Changed to info for visibility
+        message: "API: Users with relationship status calculated (final results)",
+        count: resultsWithStatus.length,
+        sampleData: resultsWithStatus.slice(0,3).map(u => ({ id: u.id, name: u.name, status: u.relationshipStatus }))
+    });
+
     return NextResponse.json(resultsWithStatus, { status: 200 });
 
   } catch (error: any) {
-    logger.error("API: Failed to search users", {
+    logger.error("API: Failed to search users (outer catch block)", {
       userId: currentUserIdString,
-      searchQuery: searchQueryParam,
+      searchQuery: searchQueryParam, // Use the captured searchQueryParam
       errorMessage: error.message,
       errorStack: error.stack,
       errorDetails: error,
