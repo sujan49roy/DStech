@@ -83,17 +83,32 @@ export default function LoginPage() {
                 placeholder="••••••••"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+
+            <div className="my-4 flex items-center before:flex-1 before:border-t before:border-gray-300 before:mt-0.5 after:flex-1 after:border-t after:border-gray-300 after:mt-0.5 dark:before:border-gray-600 dark:after:border-gray-600">
+              <p className="mx-4 mb-0 text-center font-semibold dark:text-gray-200">OR</p>
+            </div>
+
+            <a href="/api/auth/google" className="block w-full">
+              <Button variant="outline" className="w-full">
+                {/* Placeholder for Google Icon - <GIcon className="mr-2 h-4 w-4" /> */}
+                Sign in with Google
+              </Button>
+            </a>
+
+            <Button type="submit" className="w-full mt-4" disabled={isLoading}>
               {isLoading ? "Logging in..." : "Login"}
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-gray-500">
+        <CardFooter className="flex flex-col items-center space-y-2 pt-6"> {/* Adjusted for better spacing */}
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-blue-600  text-lg hover:underline">
-              Register
+            <Link href="/register" className="font-semibold text-primary hover:underline">
+              Register here
             </Link>
+          </p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            Problems logging in? <Link href="/contact" className="hover:underline">Contact support</Link>
           </p>
         </CardFooter>
       </Card>
