@@ -17,6 +17,7 @@ import {
   Github,
   Plus,
   X,
+  UserPlus,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -177,6 +178,64 @@ useEffect(() => {
                 External
               </div>
             </div>
+
+            {isMobile ? (
+              <div
+                onClick={() => handleNavClick("/connect")}
+                className={cn(
+                  "flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium cursor-pointer",
+                  pathname === "/connect"
+                    ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
+                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                )}
+              >
+                <UserPlus className="h-4 w-4" />
+                <span className="text-xs">Connect with Friend</span>
+              </div>
+            ) : (
+              <Link href="/connect" passHref>
+                <div
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium cursor-pointer",
+                    pathname === "/connect"
+                      ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
+                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                  )}
+                >
+                  <UserPlus className="h-5 w-5" />
+                  <span>Connect with Friend</span>
+                </div>
+              </Link>
+            )}
+
+            {isMobile ? (
+              <div
+                onClick={() => handleNavClick("/connect")}
+                className={cn(
+                    "flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium cursor-pointer", // Changed py-1.5 to py-2
+                  pathname === "/connect"
+                    ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
+                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                )}
+              >
+                <UserPlus className="h-4 w-4" />
+                <span className="text-xs">Connect with Friend</span>
+              </div>
+            ) : (
+              <Link href="/connect" passHref>
+                <div
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium cursor-pointer",
+                    pathname === "/connect"
+                      ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
+                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                  )}
+                >
+                  <UserPlus className="h-5 w-5" />
+                  <span>Connect with Friend</span>
+                </div>
+              </Link>
+            )}
 
             {isMobile ? (
               <div
