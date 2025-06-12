@@ -399,3 +399,112 @@ export async function findOrCreateUserByGithubProfile(
     } as User;
   }
 }
+
+// Find or create a user by Google profile
+export async function findOrCreateUserByGoogleProfile(
+  googleId: string,
+  email: string, // Verified email from Google
+  name: string,
+  accessToken: string,
+): Promise<User> {
+  const { db } = await connectToDatabase();
+
+  if (!encryptionKey) {
+    console.error("Encryption key is not initialized. Cannot proceed with Google user creation/update.");
+    throw new Error("Encryption key is not available. Please check server configuration.");
+  }
+
+  const encryptedAccessToken = encryptAccessToken(accessToken);
+
+  // 1. Find User by googleId
+  let user = await db.collection<User>("users").findOne({ googleId });
+
+  if (user) {
+    // User found by googleId, update their info
+    const updateFields: Partial<User> = {
+      updatedAt: new Date(),
+      googleAccessToken: encryptedAccessToken,
+      name: name, // Update name if different
+    };
+    if (email !== user.email) { // If Google email is different, update it
+      updateFields.email = email;
+    }
+    if (email !== user.googleEmail) { // Also update googleEmail field if different
+        updateFields.googleEmail = email;
+    }
+
+
+    await db.collection("users").updateOne({ _id: user._id }, { $set: updateFields });
+    const updatedUser = await db.collection("users").findOne({ _id: user._id });
+    if (!updatedUser) {
+        throw new Error("Failed to retrieve updated user after Google profile update (found by googleId).");
+    }
+    return updatedUser as User;
+  }
+
+  // 2. Find User by email (if not found by googleId) to link account
+  // Ensure googleId is not already set for this email, to prevent conflicts
+  user = await db.collection<User>("users").findOne({ email, googleId: { $exists: false } });
+
+  if (user) {
+    // Existing user found by email, link their Google account
+    const updateFields: Partial<User> = {
+      updatedAt: new Date(),
+      googleId: googleId,
+      googleAccessToken: encryptedAccessToken,
+      googleEmail: email, // Store the verified Google email
+      name: name, // Update name from Google profile, could be more complete
+    };
+
+    await db.collection("users").updateOne({ _id: user._id }, { $set: updateFields });
+    const updatedUser = await db.collection("users").findOne({ _id: user._id });
+    if (!updatedUser) {
+        throw new Error("Failed to retrieve updated user after linking Google profile (found by email).");
+    }
+    return updatedUser as User;
+  }
+
+  // 3. Create New User (if not found by googleId or email for linking)
+  const newUser: Omit<User, "_id"> = {
+    googleId,
+    email, // Primary email is the verified Google email
+    googleEmail: email, // Store verified Google email
+    name,
+    googleAccessToken: encryptedAccessToken,
+    password: "", // No password for Google-only users
+    passwordSalt: "", // No salt for Google-only users
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  try {
+    const result = await db.collection("users").insertOne(newUser);
+    return {
+      ...newUser,
+      _id: result.insertedId,
+    } as User;
+  } catch (error) {
+    // Handle potential duplicate key error on 'email' if a race condition occurred,
+    // though the checks above should minimize this.
+    if (error instanceof Error && 'code' in error && (error as any).code === 11000) {
+        // Attempt to refetch the user by email, as they might have just been created.
+        const existingUserByEmail = await db.collection<User>("users").findOne({ email });
+        if (existingUserByEmail) {
+            // If it's a different googleId, this is a conflict. For now, we throw.
+            // A more sophisticated approach might merge or ask the user.
+            if (existingUserByEmail.googleId && existingUserByEmail.googleId !== googleId) {
+                 console.error(`User with email ${email} already exists but with a different Google ID.`);
+                 throw new Error(`Account with email ${email} already exists and is linked to a different Google account.`);
+            }
+            // If it's the same googleId or googleId was missing, this user is likely the one.
+            // This path is less likely given previous checks but handles race conditions.
+            console.warn(`User insertion failed due to duplicate email, but found existing user ${email}. Returning them.`);
+            return existingUserByEmail;
+        }
+        console.error("Duplicate email error during new user creation, but could not refetch user:", error);
+        throw new Error("User with this email might already exist. Failed to create new user.");
+    }
+    console.error("Error creating new user with Google profile:", error);
+    throw error; // Re-throw other errors
+  }
+}

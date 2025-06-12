@@ -44,6 +44,9 @@ export interface User {
   githubId?: string
   githubAccessToken?: string
   githubUsername?: string
+  googleId?: string
+  googleAccessToken?: string
+  googleEmail?: string
 }
 
 // Utility function to generate a slug
@@ -110,8 +113,8 @@ export function validateUser(user: Partial<User>): { isValid: boolean; errors: s
 
   if (!user.password || user.password.trim() === "") {
     errors.push("Password is required")
-  } else if (user.password.length < 6) {
-    errors.push("Password must be at least 6 characters")
+  } else if (user.password.length < 8) {
+    errors.push("Password must be at least 8 characters")
   }
 
   if (!user.name || user.name.trim() === "") {

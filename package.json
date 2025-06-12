@@ -54,6 +54,7 @@
     "date-fns": "latest",
     "embla-carousel-react": "8.5.1",
     "gcp-metadata": "latest",
+    "google-auth-library": "^10.1.0",
     "input-otp": "1.4.1",
     "kerberos": "latest",
     "lucide-react": "^0.454.0",
