@@ -41,6 +41,9 @@ export interface User {
   name: string
   createdAt: string | Date
   updatedAt?: string | Date
+  githubId?: string
+  githubAccessToken?: string
+  githubUsername?: string
 }
 
 // Utility function to generate a slug

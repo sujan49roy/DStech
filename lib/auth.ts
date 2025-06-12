@@ -5,6 +5,76 @@ import { redirect } from "next/navigation"
 import { ObjectId } from "mongodb"
 import * as crypto from "crypto"
 
+const ALGORITHM = "aes-256-gcm";
+const IV_LENGTH = 16; // GCM recommended IV length
+const SALT_LENGTH = 16; // For key derivation
+const KEY_LENGTH = 32; // For AES-256
+
+// Derive a key from NEXTAUTH_SECRET
+let encryptionKey: Buffer;
+try {
+  if (!process.env.NEXTAUTH_SECRET) {
+    console.warn("NEXTAUTH_SECRET is not set. GitHub access token encryption will be insecure.");
+    // Use a default, less secure key if NEXTAUTH_SECRET is not set (for development/testing only)
+    // In a production environment, this should throw an error or ensure NEXTAUTH_SECRET is always set.
+    encryptionKey = crypto.scryptSync("default-insecure-secret", "default-salt", KEY_LENGTH);
+  } else if (process.env.NEXTAUTH_SECRET.length < 32) {
+    console.warn("NEXTAUTH_SECRET is less than 32 bytes. It's recommended to use a stronger secret. Deriving a key using scrypt.");
+    // If NEXTAUTH_SECRET is too short, derive a key using scrypt to ensure it's 32 bytes
+    const salt = crypto.randomBytes(SALT_LENGTH); // Store or use a fixed salt if you need to regenerate the key
+    encryptionKey = crypto.scryptSync(process.env.NEXTAUTH_SECRET, salt, KEY_LENGTH);
+  }
+  else {
+    // If NEXTAUTH_SECRET is long enough, use it directly (or a part of it)
+    // For simplicity, we'll hash it to ensure it's exactly KEY_LENGTH bytes
+    encryptionKey = crypto.createHash('sha256').update(String(process.env.NEXTAUTH_SECRET)).digest();
+  }
+} catch (error) {
+  console.error("Failed to derive encryption key:", error);
+  // Fallback to a default insecure key in case of any error during key derivation
+  encryptionKey = crypto.scryptSync("fallback-insecure-secret", "fallback-salt", KEY_LENGTH);
+}
+
+
+export function encryptAccessToken(token: string): string {
+  if (!encryptionKey) {
+    throw new Error("Encryption key is not initialized.");
+  }
+  const iv = crypto.randomBytes(IV_LENGTH);
+  const cipher = crypto.createCipheriv(ALGORITHM, encryptionKey, iv);
+  let encrypted = cipher.update(token, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  const authTag = cipher.getAuthTag();
+  return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`;
+}
+
+export function decryptAccessToken(encryptedTokenString: string): string {
+  if (!encryptionKey) {
+    throw new Error("Encryption key is not initialized.");
+  }
+  try {
+    const parts = encryptedTokenString.split(':');
+    if (parts.length !== 3) {
+      throw new Error('Invalid encrypted token format');
+    }
+    const iv = Buffer.from(parts[0], 'hex');
+    const authTag = Buffer.from(parts[1], 'hex');
+    const encryptedToken = parts[2];
+
+    const decipher = crypto.createDecipheriv(ALGORITHM, encryptionKey, iv);
+    decipher.setAuthTag(authTag);
+    let decrypted = decipher.update(encryptedToken, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+  } catch (error) {
+    console.error("Failed to decrypt access token:", error);
+    // Depending on the use case, you might want to throw the error,
+    // return null, or an empty string.
+    // For now, re-throwing to make it explicit that decryption failed.
+    throw new Error("Failed to decrypt access token.");
+  }
+}
+
 // Improved password hashing function with salt
 export function hashPassword(password: string, salt?: string): { hash: string; salt: string } {
   // Generate a random salt if not provided
@@ -261,4 +331,71 @@ export async function deleteUser(userId: string): Promise<{ success: boolean; me
   (await cookieStore).delete("userId");
 
   return { success: true, message: "User deleted successfully" };
+}
+
+// Find or create a user by GitHub profile
+export async function findOrCreateUserByGithubProfile(
+  githubId: string,
+  githubUsername: string,
+  accessToken: string,
+  email?: string,
+): Promise<User> {
+  const { db } = await connectToDatabase();
+
+  if (!encryptionKey) {
+    // This should ideally not happen if the key derivation logic at the top is robust.
+    console.error("Encryption key is not initialized. Cannot proceed with GitHub user creation/update.");
+    throw new Error("Encryption key is not available. Please check server configuration.");
+  }
+
+  const encryptedAccessToken = encryptAccessToken(accessToken);
+
+  const existingUser = await db.collection("users").findOne({ githubId });
+
+  if (existingUser) {
+    // User found, update their GitHub info if necessary
+    const updateFields: Partial<User> = {
+      updatedAt: new Date(),
+      githubUsername,
+      githubAccessToken: encryptedAccessToken,
+    };
+    // Optionally update email if provided and different,
+    // but be cautious about overwriting a verified primary email.
+    // For this example, we'll update it if the existing email is null or different.
+    if (email && email !== existingUser.email) {
+        // If the user currently has no email, or the new email is different, update it.
+        // Consider adding a field like `emailVerified: false` if email comes from GitHub and isn't primary.
+        updateFields.email = email;
+    }
+
+
+    await db.collection("users").updateOne({ _id: existingUser._id }, { $set: updateFields });
+
+    // Refetch the user to return the updated document
+    const updatedUser = await db.collection("users").findOne({ _id: existingUser._id });
+    if (!updatedUser) {
+        // This case should ideally not happen if the update was successful.
+        throw new Error("Failed to retrieve updated user after GitHub profile update.");
+    }
+    return updatedUser as User;
+  } else {
+    // No user found with this githubId, create a new user
+    const newUser: Omit<User, "_id"> = {
+      githubId,
+      githubUsername,
+      githubAccessToken: encryptedAccessToken,
+      email: email || `${githubUsername}@users.noreply.github.com`, // Default email if not provided
+      name: githubUsername, // Default name to GitHub username
+      password: "", // No password for GitHub-only users
+      passwordSalt: "", // No salt for GitHub-only users
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const result = await db.collection("users").insertOne(newUser);
+    return {
+      ...newUser,
+      _id: result.insertedId,
+    } as User;
+  }
 }
