@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   const githubClientId = process.env.GITHUB_CLIENT_ID;
-  const nextAuthUrl = process.env.NEXTAUTH_URL;
 
   if (!githubClientId) {
     console.error('GITHUB_CLIENT_ID is not set in environment variables.');
@@ -14,7 +13,7 @@ export async function GET() {
     return NextResponse.json({ error: 'Server configuration error: NEXTAUTH_URL is missing.' }, { status: 500 });
   }
 
-  const redirectUri = `${nextAuthUrl}/api/auth/github/callback`;
+  const redirectUri = `https://dstechnology.vercel.app/api/auth/github/callback`;
   const scope = 'read:user user:email repo';
   // const state = crypto.randomBytes(16).toString('hex'); // Optional: CSRF protection
 
