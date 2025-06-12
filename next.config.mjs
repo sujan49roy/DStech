@@ -3,9 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
-  experimental: {
-    serverComponentsExternalPackages: ['mongodb'],
-  },
+  serverExternalPackages: ['mongodb'], // Moved and renamed
   images: {
     domains: ['placeholder.com'],
     unoptimized: false,
@@ -24,4 +22,3 @@ const nextConfig = {
 }
 
 export default nextConfig
-

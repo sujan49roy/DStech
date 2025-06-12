@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 import { getCurrentUser } from '@/lib/auth';
 import { connectToDB } from '@/lib/db';
-import User from '@/lib/models/User';
+import { type User } from "@/lib/models"; // Changed import
 import { logger } from '@/lib/logger';
 import { apiErrorResponse, apiSuccessResponse } from '@/lib/utils'; // Assuming apiSuccessResponse exists
 
@@ -37,14 +37,17 @@ export async function POST(req: NextRequest) {
     const requesterObjectId = new ObjectId(requesterUserId);
     const currentUserObjectId = new ObjectId(currentUser.id); // Assuming currentUser.id is a string
 
+    const db = await connectToDB(); // Make sure db is available
+    const usersCollection = db.collection<User>("users");
+
     // Update current user: remove requesterUserId from incomingRequests
-    const updateCurrentUser = await User.updateOne(
+    const updateCurrentUser = await usersCollection.updateOne(
       { _id: currentUserObjectId },
       { $pull: { incomingRequests: requesterObjectId } }
     );
 
     // Update requester user: remove current user's ID from outgoingRequests
-    const updateRequesterUser = await User.updateOne(
+    const updateRequesterUser = await usersCollection.updateOne(
       { _id: requesterObjectId },
       { $pull: { outgoingRequests: currentUserObjectId } }
     );
