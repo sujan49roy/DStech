@@ -64,15 +64,28 @@ export default function ConnectPage() {
     try {
       const response = await fetch('/api/friends/list');
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch friends list.");
+        const contentType = response.headers.get('content-type');
+        let errorData;
+        if (contentType && contentType.includes('application/json')) {
+          errorData = await response.json();
+          throw new Error(errorData.error || "Failed to fetch friends list.");
+        } else {
+          const errorText = await response.text();
+          throw new Error(`Server error: ${response.status}. Response: ${errorText.substring(0, 100)}`);
+        }
       }
-      const data: FriendUser[] = await response.json();
-      setFriendsList(data);
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const data: FriendUser[] = await response.json();
+        setFriendsList(data);
+      } else {
+        const textData = await response.text();
+        throw new Error(`Server returned non-JSON response: ${textData.substring(0,100)}`);
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An error occurred.";
       setErrorFriends(errorMessage);
-      // toast.error(`Failed to load friends: ${errorMessage}`); // Optional: can be noisy
+      toast.error(`Failed to load friends: ${errorMessage}`);
     } finally {
       setIsLoadingFriends(false);
     }
@@ -85,14 +98,28 @@ export default function ConnectPage() {
     try {
       const response = await fetch('/api/friends/requests/incoming');
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch incoming requests.");
+        const contentType = response.headers.get('content-type');
+        let errorData;
+        if (contentType && contentType.includes('application/json')) {
+          errorData = await response.json();
+          throw new Error(errorData.error || "Failed to fetch incoming requests.");
+        } else {
+          const errorText = await response.text();
+          throw new Error(`Server error: ${response.status}. Response: ${errorText.substring(0, 100)}`);
+        }
       }
-      const data: IncomingRequestUser[] = await response.json();
-      setIncomingRequests(data);
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const data: IncomingRequestUser[] = await response.json();
+        setIncomingRequests(data);
+      } else {
+        const textData = await response.text();
+        throw new Error(`Server returned non-JSON response: ${textData.substring(0,100)}`);
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An error occurred.";
       setErrorIncoming(errorMessage);
+      toast.error(`Error fetching incoming requests: ${errorMessage}`);
     } finally {
       setIsLoadingIncoming(false);
     }
@@ -118,18 +145,31 @@ export default function ConnectPage() {
     try {
       const response = await fetch(`/api/users/search?username=${encodeURIComponent(searchQuery)}`);
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Error: ${response.status}`);
+        const contentType = response.headers.get('content-type');
+        let errorData;
+        if (contentType && contentType.includes('application/json')) {
+          errorData = await response.json();
+          throw new Error(errorData.error || `Error: ${response.status}`);
+        } else {
+          const errorText = await response.text();
+          throw new Error(`Server error: ${response.status}. Response: ${errorText.substring(0, 100)}`);
+        }
       }
-      const data: SearchUser[] = await response.json();
-      setSearchResults(data);
-      if (data.length === 0) {
-        toast.info("No users found matching your query.");
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const data: SearchUser[] = await response.json();
+        setSearchResults(data);
+        if (data.length === 0) {
+          toast.info("No users found matching your query.");
+        }
+      } else {
+        const textData = await response.text();
+        throw new Error(`Server returned non-JSON response: ${textData.substring(0,100)}`);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred during search.";
       setError(errorMessage);
-      toast.error(errorMessage);
+      toast.error(`Search Error: ${errorMessage}`);
       setSearchResults([]);
     } finally {
       setIsLoading(false);
@@ -145,9 +185,31 @@ export default function ConnectPage() {
         body: JSON.stringify({ targetUserId }),
       });
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to send friend request.");
+        const contentType = response.headers.get('content-type');
+        let errorData;
+        if (contentType && contentType.includes('application/json')) {
+          errorData = await response.json();
+          throw new Error(errorData.error || "Failed to send friend request.");
+        } else {
+          const errorText = await response.text();
+          throw new Error(`Server error: ${response.status}. Response: ${errorText.substring(0, 100)}`);
+        }
       }
+      // Assuming success response might not always be JSON, or to be safe:
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        // Attempt to parse JSON if content type is correct, but be ready to catch errors if it's not.
+        // For a simple success message, often there's no body or it's not critical to parse.
+        // If a specific JSON body is expected on success, parse it here.
+        // const successData = await response.json(); // Example if JSON expected
+      } else if (response.body) { // Check if there's any body at all
+        const textData = await response.text();
+        if (textData) { // If there's text, and it wasn't JSON, it might be an unexpected success response format
+          console.warn(`Received non-JSON success response: ${textData.substring(0,100)}`);
+          // Potentially throw an error or handle as a non-critical warning
+        }
+      }
+
       toast.success("Friend request sent successfully!");
       setSearchResults(prevResults =>
         prevResults.map(user =>
@@ -171,9 +233,27 @@ export default function ConnectPage() {
         body: JSON.stringify({ requesterUserId }),
       });
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to accept friend request.");
+        const contentType = response.headers.get('content-type');
+        let errorData;
+        if (contentType && contentType.includes('application/json')) {
+          errorData = await response.json();
+          throw new Error(errorData.error || "Failed to accept friend request.");
+        } else {
+          const errorText = await response.text();
+          throw new Error(`Server error: ${response.status}. Response: ${errorText.substring(0, 100)}`);
+        }
       }
+      // Assuming success response might not always be JSON, or to be safe:
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        // const successData = await response.json(); // Example if JSON expected
+      } else if (response.body) {
+        const textData = await response.text();
+        if (textData) {
+         console.warn(`Received non-JSON success response: ${textData.substring(0,100)}`);
+        }
+      }
+
       toast.success("Friend request accepted!");
       setIncomingRequests(prevRequests =>
         prevRequests.filter(request => request.id !== requesterUserId)
@@ -202,8 +282,25 @@ export default function ConnectPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to decline friend request.");
+        const contentType = response.headers.get('content-type');
+        let errorData;
+        if (contentType && contentType.includes('application/json')) {
+          errorData = await response.json();
+          throw new Error(errorData.error || "Failed to decline friend request.");
+        } else {
+          const errorText = await response.text();
+          throw new Error(`Server error: ${response.status}. Response: ${errorText.substring(0, 100)}`);
+        }
+      }
+      // Assuming success response might not always be JSON, or to be safe:
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        // const successData = await response.json(); // Example if JSON expected
+      } else if (response.body) {
+        const textData = await response.text();
+        if (textData) {
+         console.warn(`Received non-JSON success response: ${textData.substring(0,100)}`);
+        }
       }
 
       toast.success("Friend request declined.");
@@ -240,8 +337,25 @@ export default function ConnectPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to remove friend.");
+        const contentType = response.headers.get('content-type');
+        let errorData;
+        if (contentType && contentType.includes('application/json')) {
+          errorData = await response.json();
+          throw new Error(errorData.error || "Failed to remove friend.");
+        } else {
+          const errorText = await response.text();
+          throw new Error(`Server error: ${response.status}. Response: ${errorText.substring(0, 100)}`);
+        }
+      }
+      // Assuming success response might not always be JSON, or to be safe:
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        // const successData = await response.json(); // Example if JSON expected
+      } else if (response.body) {
+        const textData = await response.text();
+        if (textData) {
+         console.warn(`Received non-JSON success response: ${textData.substring(0,100)}`);
+        }
       }
 
       toast.success("Friend removed successfully.");
