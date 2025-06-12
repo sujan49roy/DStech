@@ -23,7 +23,6 @@ export async function GET(request: NextRequest) {
 
   const githubClientId = process.env.GITHUB_CLIENT_ID;
   const githubClientSecret = process.env.GITHUB_CLIENT_SECRET;
-  const nextAuthUrl = process.env.NEXTAUTH_URL;
 
   if (!githubClientId || !githubClientSecret || !nextAuthUrl) {
     console.error('Missing GitHub OAuth environment variables.');
