@@ -1,13 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { loginUser } from "@/lib/auth"
 import { cookies } from "next/headers"
+import { logger, apiErrorResponse } from "@/lib/logger" // Import logger and helper
 
 export async function POST(request: NextRequest) {
+  let email: string | undefined; // Define email here to be accessible in catch block
   try {
-    const { email, password } = await request.json()
+    const body = await request.json()
+    email = body.email; // Assign email
+    const password = body.password;
 
     if (!email || !password) {
-      return NextResponse.json({ error: "Email and password are required" }, { status: 400 })
+      const response = apiErrorResponse("Email and password are required", 400)
+      return NextResponse.json(response.json, { status: response.status })
     }
 
     // Login the user
@@ -27,8 +32,10 @@ export async function POST(request: NextRequest) {
     const { password: _, passwordSalt: __, ...userWithoutPassword } = user
     return NextResponse.json(userWithoutPassword)
   } catch (error) {
-    console.error("Error logging in:", error)
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to login" }, { status: 401 })
+    const errorMessage = error instanceof Error ? error.message : "Failed to login due to an unexpected error."
+    logger.error("Login failed", error, { email }) // Log with email context
+    const response = apiErrorResponse(errorMessage, 401)
+    return NextResponse.json(response.json, { status: response.status })
   }
 }
 

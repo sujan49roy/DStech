@@ -47,6 +47,9 @@ export interface User {
   googleId?: string
   googleAccessToken?: string
   googleEmail?: string
+  friends?: ObjectId[]; // List of connected user IDs
+  incomingRequests?: ObjectId[]; // List of user IDs who sent a request
+  outgoingRequests?: ObjectId[]; // List of user IDs to whom a request was sent
 }
 
 // Utility function to generate a slug
