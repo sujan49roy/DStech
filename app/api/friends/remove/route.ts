@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 import { getCurrentUser } from '@/lib/auth';
 import { connectToDB } from '@/lib/db';
-import User from '@/lib/models/User';
+import { type User } from "@/lib/models"; // Changed import
 import { logger } from '@/lib/logger';
 import { apiErrorResponse, apiSuccessResponse } from '@/lib/utils';
 
@@ -37,14 +37,17 @@ export async function POST(req: NextRequest) {
       return apiErrorResponse('You cannot remove yourself as a friend.', 400);
     }
 
+    const db = await connectToDB(); // Make sure db is available
+    const usersCollection = db.collection<User>("users");
+
     // Update current user: remove friendUserId from friends array
-    const updateCurrentUser = await User.updateOne(
+    const updateCurrentUser = await usersCollection.updateOne(
       { _id: currentUserObjectId },
       { $pull: { friends: friendObjectId } }
     );
 
     // Update friend user: remove current user's ID from friends array
-    const updateFriendUser = await User.updateOne(
+    const updateFriendUser = await usersCollection.updateOne(
       { _id: friendObjectId },
       { $pull: { friends: currentUserObjectId } }
     );
