@@ -23,13 +23,14 @@ export async function GET(request: NextRequest) {
 
   const githubClientId = process.env.GITHUB_CLIENT_ID;
   const githubClientSecret = process.env.GITHUB_CLIENT_SECRET;
+  const nextAuthUrl = process.env.NEXTAUTH_URL;
 
   if (!githubClientId || !githubClientSecret || !nextAuthUrl) {
     console.error('Missing GitHub OAuth environment variables.');
     return NextResponse.json({ error: 'Server configuration error.' }, { status: 500 });
   }
 
-  const redirectUri = `https://dstechnology.vercel.app/api/auth/github/callback`;
+  const redirectUri = `${nextAuthUrl}/api/auth/github/callback`;
 
   try {
     // 7. Exchange code for access token
