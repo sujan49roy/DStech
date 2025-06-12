@@ -15,6 +15,7 @@ import { Edit, Trash2, MoreHorizontal, FileText, Code, Database, FolderKanban, B
 import Link from "next/link"
 import type { Content } from "@/lib/models"
 import { Spinner } from "@/components/ui/spinner" // Import Spinner
+import { toast } from "sonner" // Import toast
 
 const contentTypeIcons = {
   Blog: FileText,
@@ -30,8 +31,13 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null)
   const [contents, setContents] = useState<Content[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null) // For general page errors
   const [contentCounts, setContentCounts] = useState<Record<string, number>>({})
+  // States for form fields - assuming password change for now
+  const [currentPassword, setCurrentPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmNewPassword, setConfirmNewPassword] = useState("")
+  const [isUpdating, setIsUpdating] = useState(false) // For form submission loading state
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -188,10 +194,10 @@ export default function ProfilePage() {
           <Card>
             <CardHeader>
               <CardTitle>Account Settings</CardTitle>
-              <CardDescription>Update your account information</CardDescription>
+              <CardDescription>Update your account information (Password Change Only Example)</CardDescription>
             </CardHeader>
             <CardContent>
-              <form className="space-y-6">
+              <form onSubmit={handleProfileUpdate} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
                   <Input id="name" defaultValue={user.name} disabled className="bg-gray-50 dark:bg-gray-700" />
@@ -202,17 +208,38 @@ export default function ProfilePage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="current-password">Current Password</Label>
-                  <Input id="current-password" type="password" />
+                  <Input
+                    id="current-password"
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="new-password">New Password</Label>
-                  <Input id="new-password" type="password" />
+                  <Input
+                    id="new-password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirm-password">Confirm New Password</Label>
-                  <Input id="confirm-password" type="password" />
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    required
+                  />
                 </div>
-                <Button type="submit">Save Changes</Button>
+                <Button type="submit" disabled={isUpdating}>
+                  {isUpdating ? <Spinner size="sm" className="mr-2" /> : null}
+                  Save Changes
+                </Button>
               </form>
             </CardContent>
           </Card>

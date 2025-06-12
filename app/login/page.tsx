@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, type FormEvent } from "react"
+import Head from "next/head" // Import Head
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -49,9 +50,28 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen  dark:bg-gray-900 px-4 py-8">
-      <Card className="w-full max-w-md md:max-w-lg bg-white dark:bg-gray-800 shadow-2xl rounded-lg">
-        <CardHeader className="text-center pt-8 pb-6"> {/* Added padding and centered */}
+    <>
+      <Head>
+        <title>Login - DStech</title>
+        <meta name="description" content="Access your DStech account to manage your data science personal vault and storage." />
+        <meta name="keywords" content="dstech, login, account, data science, personal vault" />
+        <link rel="canonical" href="https://dstech.example.com/login" />
+        <meta name="robots" content="noindex, nofollow" />
+        {/* Open Graph */}
+        <meta property="og:title" content="Login - DStech" />
+        <meta property="og:description" content="Access your DStech account." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://dstech.example.com/login" />
+        <meta property="og:image" content="https://dstech.example.com/placeholder-og-image.jpg" />
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="Login - DStech" />
+        <meta name="twitter:description" content="Access your DStech account." />
+        <meta name="twitter:image" content="https://dstech.example.com/placeholder-twitter-image.jpg" />
+      </Head>
+      <div className="flex items-center justify-center min-h-screen  dark:bg-gray-900 px-4 py-8">
+        <Card className="w-full max-w-md md:max-w-lg bg-white dark:bg-gray-800 shadow-2xl rounded-lg">
+          <CardHeader className="text-center pt-8 pb-6"> {/* Added padding and centered */}
           <div className="flex justify-center mb-4">
             <LogIn className="h-12 w-12 text-primary" /> {/* Larger icon, primary color */}
           </div>
@@ -120,5 +140,6 @@ export default function LoginPage() {
         </CardFooter>
       </Card>
     </div>
+    </>
   )
 }

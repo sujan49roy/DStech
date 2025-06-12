@@ -4,9 +4,11 @@ import type React from "react"
 import "./globals.css"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/sonner" // Import Toaster
 import { NavBar } from "@/components/nav-bar"
 import { Sidebar } from "@/components/sidebar"
 import { Footer } from "@/components/footer" // Import Footer
+import ErrorBoundary from "@/components/error-boundary"; // Import ErrorBoundary
 import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -66,14 +68,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 user ? "md:ml-56" : ""
                 // Removed min-h-[calc(100vh-3.5rem)] as parent flex items handle height
               )}>
-                {/* Removed redundant inner div with pt-[60px] md:pt-16 */}
-                <main className="flex-1 px-3 py-4 md:px-6 md:py-6">
-                  {children}
-                </main>
-                <Footer className="mt-auto" />
+                <ErrorBoundary>
+                  {/* Removed redundant inner div with pt-[60px] md:pt-16 */}
+                  <main className="flex-1 px-3 py-4 md:px-6 md:py-6">
+                    {children}
+                  </main>
+                  <Footer className="mt-auto" />
+                </ErrorBoundary>
               </div>
             </div>
           </div>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
