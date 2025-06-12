@@ -21,6 +21,7 @@ import {
   PieChart,
 } from "lucide-react"
 import type { Content } from "@/lib/models"
+import { Spinner } from "@/components/ui/spinner" // Import Spinner
 
 const contentTypeIcons = {
   Blog: FileText,
@@ -78,7 +79,11 @@ export default function DashboardPage() {
   }, [])
 
   if (loading) {
-    return <div className="container mx-auto py-8">Loading...</div>
+    return (
+      <div className="container mx-auto py-8 flex justify-center items-center min-h-[calc(100vh-150px)]"> {/* Adjust min-h as needed */}
+        <Spinner size="xl" />
+      </div>
+    )
   }
 
   if (error) {
