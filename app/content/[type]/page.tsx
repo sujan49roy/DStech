@@ -12,6 +12,7 @@ import { AlphabetFilter } from "@/components/alphabet-filter"
 import { ErrorMessage } from "@/components/error-message"
 import { Plus, Search } from "lucide-react"
 import type { Content, ContentType } from "@/lib/models"
+import { Spinner } from "@/components/ui/spinner" // Import Spinner
 
 export default function ContentTypePage({ params }: { params: Promise<{ type: string }> }) {
   const router = useRouter()
@@ -156,7 +157,9 @@ export default function ContentTypePage({ params }: { params: Promise<{ type: st
       <ErrorMessage message={error} />
 
       {loading ? (
-        <div className="text-center py-8">Loading...</div>
+        <div className="flex justify-center items-center min-h-[200px] py-8"> {/* Container to center spinner */}
+          <Spinner size="lg" />
+        </div>
       ) : filteredContents.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-muted-foreground mb-4">No {contentType.toLowerCase()}s found</p>

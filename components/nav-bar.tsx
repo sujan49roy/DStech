@@ -79,7 +79,7 @@ export function NavBar({ initialUser, onContentClick, onUserChange }: NavBarProp
               {/* Image removed as per request */}
               <span className={cn(
                 "font-bold font-sans",
-                user ? "text-2xl" : "text-4xl md:mx-6 mx-0" // Updated for better mobile fit
+                user ? "text-2xl" : "text-3xl md:text-4xl ml-2 md:mx-6" // Adjusted non-user mobile logo size and added ml-2
               )}>DStech</span>
             </Link>
           </div>

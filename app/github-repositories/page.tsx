@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react'; // Added useCallback
 import { Github, Star, GitFork, AlertTriangle, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ErrorDisplay } from "@/components/error-display"; // Import ErrorDisplay
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -25,45 +26,53 @@ export default function GitHubRepositoriesPage() {
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errorTips, setErrorTips] = useState<string | string[] | undefined>(undefined); // State for tips
   const [isUserAuthenticated, setIsUserAuthenticated] = useState<boolean | null>(null);
 
+  // Memoize fetchRepositories to safely use as onRetry prop
+  const fetchRepositories = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    setErrorTips(undefined);
+    try {
+      const response = await fetch('/api/github/repositories');
+      if (response.ok) {
+        const data = await response.json();
+        setRepositories(data);
+        setIsUserAuthenticated(true);
+        setError(null); // Clear error on success
+        setErrorTips(undefined); // Clear tips on success
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response from server' }));
+        let specificError = `Error fetching repositories: ${response.statusText}`;
+        let specificTips: string | string[] = "Something went wrong. Please try again later. If the issue persists, contact support.";
+
+        if (response.status === 401 || response.status === 403) {
+          specificError = errorData.error || (response.status === 401 ? 'Authentication required. Please login with GitHub to view your repositories.' : 'Access to GitHub repositories is forbidden.');
+          specificTips = "Please ensure your GitHub account is correctly linked and that DStech has the necessary permissions. You might need to re-authenticate with GitHub.";
+          setIsUserAuthenticated(response.status === 403); // false for 401, true for 403 (app auth ok, GH auth issue)
+        } else if (response.status === 400) {
+          specificError = errorData.error || 'GitHub account not connected or access token missing.';
+          specificTips = "Please connect your GitHub account via settings or re-authenticate.";
+          setIsUserAuthenticated(false);
+        } else {
+           specificError = errorData.error || `Error fetching repositories: ${response.statusText}`;
+        }
+        setError(specificError);
+        setErrorTips(specificTips);
+      }
+    } catch (err) {
+      console.error('Network or unexpected error fetching repositories:', err);
+      setError('Failed to fetch repositories due to a network or unexpected error.');
+      setErrorTips("Please check your internet connection and try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []); // Empty dependency array means this function is created once
 
   useEffect(() => {
-    const fetchRepositories = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await fetch('/api/github/repositories');
-        if (response.ok) {
-          const data = await response.json();
-          setRepositories(data);
-          setIsUserAuthenticated(true);
-        } else {
-          const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-          if (response.status === 401) {
-            setError('Authentication required. Please login with GitHub to view your repositories.');
-            setIsUserAuthenticated(false);
-          } else if (response.status === 400) {
-            setError(errorData.error || 'GitHub account not connected or access token missing. Please connect your GitHub account.');
-            setIsUserAuthenticated(false); // Or true, depending on if they are logged in but GH not linked
-          } else if (response.status === 403) {
-             setError(errorData.error || 'Access to GitHub repositories is forbidden. Your token might be invalid or lack permissions.');
-             setIsUserAuthenticated(true); // Still authenticated to our app, but GitHub access issue
-          } else {
-            setError(errorData.error || `Error fetching repositories: ${response.statusText}`);
-            // We don't know auth status for sure here, might be server error
-          }
-        }
-      } catch (err) {
-        console.error('Network or unexpected error fetching repositories:', err);
-        setError('Failed to fetch repositories due to a network or unexpected error.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchRepositories();
-  }, []);
+  }, [fetchRepositories]); // Now fetchRepositories is a stable dependency
 
   const renderSkeletons = () => (
     Array.from({ length: 6 }).map((_, i) => (
@@ -141,12 +150,23 @@ export default function GitHubRepositoriesPage() {
       )}
 
       {!isLoading && error && (
-        <div className="flex flex-col items-center justify-center text-center p-6 sm:p-8 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
-          <AlertTriangle className="h-10 w-10 sm:h-12 sm:w-12 text-red-500 dark:text-red-400 mb-3 sm:mb-4" />
-          <p className="text-base sm:text-lg font-semibold text-red-700 dark:text-red-300 mb-1 sm:mb-2">Error Fetching Repositories</p>
-          <p className="text-sm sm:text-base text-red-600 dark:text-red-400">{error}</p>
-          {/* Optionally, add a retry button if it makes sense for the error type */}
-        </div>
+        <ErrorDisplay
+          message={error}
+          onRetry={fetchRepositories}
+          tips={errorTips}
+          title="Could Not Load Repositories"
+        />
+      )}
+
+      {/* Keep the Login with GitHub button logic separate but ensure it appears when error suggests re-auth */}
+      {(isUserAuthenticated === false || (error && (error.includes("Authentication required") || error.includes("GitHub account not connected") || error.includes("Access to GitHub repositories is forbidden")))) && !isLoading && (
+         <div className="mb-6 sm:mb-8 text-center"> {/* Added text-center for better presentation if error is also shown */}
+            <a href="/api/auth/github" className="inline-block">
+              <Button className="w-full sm:w-auto">
+                <Github className="mr-2 h-4 w-4" /> Login with GitHub
+              </Button>
+            </a>
+          </div>
       )}
 
       {!isLoading && !error && repositories.length > 0 && (
@@ -218,11 +238,13 @@ export default function GitHubRepositoriesPage() {
       )}
 
 
-      {/* Additional Info - keep or remove as needed */}
-      { (isLoading || (!error && repositories.length === 0)) && (
+      {/* Additional Info - keep or remove as needed - Conditional rendering adjusted */}
+      { (isLoading || (!error && repositories.length === 0 && isUserAuthenticated !== false )) && ( // Show if loading OR no error, no repos, AND user is not explicitly unauthenticated
           <div className="mt-8 sm:mt-12 text-center">
             <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm px-4">
-              {isLoading ? "Loading your repositories..." : (isUserAuthenticated ? "Connect your GitHub account to see your repositories listed here." : "If you have repositories, they will appear here after connecting your account.")}
+              {isLoading && "Loading your repositories..."}
+              {!isLoading && !error && repositories.length === 0 && isUserAuthenticated && "No repositories found for your connected GitHub account."}
+              {!isLoading && !error && repositories.length === 0 && isUserAuthenticated === null && "Could not determine repository status. You might need to connect your GitHub account."}
             </p>
           </div>
         )

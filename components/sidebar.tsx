@@ -107,7 +107,7 @@ useEffect(() => {
               <div
                 onClick={() => handleNavClick("/dashboard")}
                 className={cn(
-                  "flex items-center gap-2 rounded-md px-2 py-1 text-xs font-medium mt-2 cursor-pointer",
+                  "flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium mt-2 cursor-pointer", // Changed py-1 to py-2
                   pathname === "/dashboard"
                     ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
                     : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -120,7 +120,7 @@ useEffect(() => {
               <Link href="/dashboard" passHref>
                 <div
                   className={cn(
-                    "flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs md:text-sm font-medium mt-2 cursor-pointer",
+                    "flex items-center gap-2 rounded-md px-2.5 py-2 text-xs md:text-sm font-medium mt-2 cursor-pointer", // Changed py-1.5 to py-2
                     pathname === "/dashboard"
                       ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
                       : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -146,7 +146,7 @@ useEffect(() => {
                   key={type}
                   onClick={() => handleNavClick(path)}
                   className={cn(
-                    "flex items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium cursor-pointer",
+                    "flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium cursor-pointer", // Changed py-1.5 to py-2
                     pathname === path
                       ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
                       : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -182,7 +182,7 @@ useEffect(() => {
               <div
                 onClick={() => handleNavClick("/github-repositories")}
                 className={cn(
-                  "flex items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium cursor-pointer",
+                    "flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium cursor-pointer", // Changed py-1.5 to py-2
                   pathname === "/github-repositories"
                     ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
                     : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -217,7 +217,7 @@ useEffect(() => {
               <div
                 onClick={() => handleNavClick("/profile")}
                 className={cn(
-                  "flex items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium cursor-pointer",
+                    "flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium cursor-pointer", // Changed py-1.5 to py-2
                   pathname === "/profile"
                     ? "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white"
                     : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -246,7 +246,7 @@ useEffect(() => {
               <div
                 onClick={() => handleNavClick("/upload")}
                 className={cn(
-                  "flex items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium mt-4 cursor-pointer",
+                  "flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium mt-4 cursor-pointer", // Changed py-1.5 to py-2
                   pathname === "/upload"
                     ? "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100"
                     : "text-blue-700 bg-blue-50 hover:bg-blue-100 dark:text-blue-300 dark:bg-blue-900/20 dark:hover:bg-blue-900/30"

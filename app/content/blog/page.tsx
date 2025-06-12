@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { ErrorMessage } from "@/components/error-message"
 import { Search, Plus, Calendar } from "lucide-react"
 import type { Content } from "@/lib/models"
+import { Spinner } from "@/components/ui/spinner" // Import Spinner
 
 export default function BlogsPage() {
   const [blogs, setBlogs] = useState<Content[]>([])
@@ -129,7 +130,9 @@ export default function BlogsPage() {
       <ErrorMessage message={error} />
 
       {loading ? (
-        <div className="text-center py-8">Loading...</div>
+        <div className="flex justify-center items-center min-h-[200px] py-8"> {/* Container to center spinner */}
+          <Spinner size="lg" />
+        </div>
       ) : filteredBlogs.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-muted-foreground mb-4">No blogs found</p>

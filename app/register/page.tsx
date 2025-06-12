@@ -124,6 +124,13 @@ export default function RegisterPage() {
               </Button>
             </a>
 
+            <a href="/api/auth/github" className="block w-full mt-2"> {/* Added mt-2 for spacing */}
+              <Button variant="outline" className="w-full" type="button">
+                {/* Placeholder for GitHub Icon - <GitHubIcon className="mr-2 h-4 w-4" /> */}
+                Sign up with GitHub
+              </Button>
+            </a>
+
             <Button type="submit" className="w-full mt-4" disabled={isLoading}>
               {isLoading ? "Creating account..." : "Register"}
             </Button>
