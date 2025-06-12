@@ -12,18 +12,30 @@ interface UserSearchResult extends Partial<User> { // Use Partial<User> for proj
 
 export async function GET(request: NextRequest) {
   let currentUserIdString: string | undefined;
+  let searchQueryParam: string | null = null; // For logging in catch
+
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser || !currentUser._id) {
+      logger.warn('API: User search - Not authenticated');
       const errResponse = apiErrorResponse("Not authenticated", 401);
       return NextResponse.json(errResponse.json, { status: errResponse.status });
     }
     currentUserIdString = currentUser._id.toString();
     const currentUserId = new ObjectId(currentUserIdString);
 
-    const searchQuery = request.nextUrl.searchParams.get("username");
+    searchQueryParam = request.nextUrl.searchParams.get("username");
+    logger.debug({
+        message: "API: User search initiated",
+        userId: currentUserIdString,
+        searchQuery: searchQueryParam,
+        currentUserFriends: currentUser.friends?.length,
+        currentUserOutgoing: currentUser.outgoingRequests?.length,
+        currentUserIncoming: currentUser.incomingRequests?.length,
+    });
 
-    if (!searchQuery || searchQuery.trim().length < 3) {
+    if (!searchQueryParam || searchQueryParam.trim().length < 3) {
+      logger.warn(`API: User search - Invalid search query: '${searchQueryParam}' by user ${currentUserIdString}`);
       const errResponse = apiErrorResponse("Search query must be at least 3 characters", 400);
       return NextResponse.json(errResponse.json, { status: errResponse.status });
     }
@@ -31,7 +43,7 @@ export async function GET(request: NextRequest) {
     const db = await connectToDatabase();
     const usersCollection = db.collection<User>("users");
 
-    const searchRegex = new RegExp(searchQuery.trim(), 'i'); // Case-insensitive regex
+    const searchRegex = new RegExp(searchQueryParam.trim(), 'i'); // Case-insensitive regex
 
     const foundUsers = await usersCollection.find(
       {
@@ -54,15 +66,22 @@ export async function GET(request: NextRequest) {
     ).limit(20) // Limit results to prevent overly large responses
      .toArray();
 
+    logger.debug({ message: "Raw users found from DB", count: foundUsers.length, data: foundUsers.map(u => u._id) });
+
     const resultsWithStatus: UserSearchResult[] = foundUsers.map(user => {
       let status: UserSearchResult["relationshipStatus"] = "none";
       const userId = user._id!; // _id is guaranteed by projection
 
-      if (currentUser.friends?.some(friendId => friendId.equals(userId))) {
+      // Ensure currentUser fields are arrays before calling .some()
+      const friends = Array.isArray(currentUser.friends) ? currentUser.friends : [];
+      const outgoingRequests = Array.isArray(currentUser.outgoingRequests) ? currentUser.outgoingRequests : [];
+      const incomingRequests = Array.isArray(currentUser.incomingRequests) ? currentUser.incomingRequests : [];
+
+      if (friends.some(friendId => friendId.equals(userId))) {
         status = "friends";
-      } else if (currentUser.outgoingRequests?.some(reqId => reqId.equals(userId))) {
+      } else if (outgoingRequests.some(reqId => reqId.equals(userId))) {
         status = "request_sent";
-      } else if (currentUser.incomingRequests?.some(reqId => reqId.equals(userId))) {
+      } else if (incomingRequests.some(reqId => reqId.equals(userId))) {
         status = "request_received";
       }
 
@@ -75,19 +94,25 @@ export async function GET(request: NextRequest) {
       };
 
       return {
-        ...projectedUser,
+        ...projectedUser, // Spread projected fields
+        id: user._id.toString(), // Add string id for frontend consistency
         relationshipStatus: status,
       };
     });
 
+    logger.debug({ message: "Users with relationship status calculated", count: resultsWithStatus.length, data: resultsWithStatus.map(u => ({id: u.id, status: u.relationshipStatus})) });
+    logger.info(`API: User search by ${currentUserIdString} for query "${searchQueryParam}" returned ${resultsWithStatus.length} results.`);
     return NextResponse.json(resultsWithStatus, { status: 200 });
 
-  } catch (error) {
-    logger.error("Failed to search users", error, {
+  } catch (error: any) {
+    logger.error("API: Failed to search users", {
       userId: currentUserIdString,
-      searchQuery: request.nextUrl.searchParams.get("username")
+      searchQuery: searchQueryParam,
+      errorMessage: error.message,
+      errorStack: error.stack,
+      errorDetails: error,
     });
-    const errResponse = apiErrorResponse("Failed to search users", 500);
+    const errResponse = apiErrorResponse("An unexpected error occurred while searching for users.", 500);
     return NextResponse.json(errResponse.json, { status: errResponse.status });
   }
 }
